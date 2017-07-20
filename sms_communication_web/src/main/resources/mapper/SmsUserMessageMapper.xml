@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsUserMessageDao">
+	<resultMap id="SmsUserMessageMapper" type="com.dzd.phonebook.entity.SmsUserMessage">
+		<result column="sms_user_id" property="smsUserId" />
+	</resultMap>
+	
+	<!-- 查询未读消息数量 -->
+	<select id="queryMessageCount" parameterType="Object" resultType="Integer">
+		SELECT count(1)
+		FROM sms_user_message
+		WHERE 1=1 
+			and (sms_user_email = #{smsUserEmail}
+		<if test="smsUserTypeId != null">
+			or  find_in_set(#{smsUserTypeId},sms_user_type_id)
+		</if>
+			or type = 0)  and push_index = 0 and state = 0
+	</select>	
+	
+	<!-- 查询首页消息 -->
+	<select id="queryMsgForIndex" parameterType="Object" resultMap="SmsUserMessageMapper">
+		SELECT *
+		FROM sms_user_message
+		WHERE 1=1 
+			and (sms_user_email = #{smsUserEmail}
+		<if test="smsUserTypeId != null">
+			or  find_in_set(#{smsUserTypeId},sms_user_type_id)
+		</if>
+			or type = 0)  
+			and push_index = 1 and state = 0
+		order by created desc 
+		LIMIT 1
+	</select>
+	
+	
+	<!-- 查询代理商消息 -->
+	<select id="queryMessagePage" parameterType="Object" resultMap="SmsUserMessageMapper">
+		SELECT m.id,m.sms_user_id,m.title,m.state,m.content,m.created,m.updated
+		FROM sms_user_message m
+		inner join sms_user s on s.email = m.sms_user_email
+		WHERE 1=1 
+			and 
+			(m.sms_user_email = #{condition.smsUserEmail}
+		<if test="condition != null and condition.smsUserTypeId != null">
+			or  find_in_set(#{condition.smsUserTypeId},m.sms_user_type_id) 
+		</if>
+			or m.type = 0)  
+			and m.push_index = 0
+			and s.bId = m.sys_user_id
+			order by m.state asc,m.id desc
+	</select>	
+	
+	
+	<!-- 新增 -->
+	<insert id="add" parameterType="Object">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+			keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO
+		sms_user_message(id,sms_user_id,title,content,state,created,updated)
+		VALUES(#{id},#{smsUserId},#{title},#{content},#{state},now(),now())
+	</insert>
+	
+	<!-- 修改 -->
+	<update id="updateBySelective" parameterType="Object" >
+		UPDATE sms_user_message
+		SET
+		<trim suffixOverrides=",">
+			<if test="title != null  and title != '' ">
+				title=#{title},
+			</if>
+			<if test="content != null  and content != '' ">
+				content=#{content},
+			</if>
+			<if test="state != null  and state != '' ">
+				state=#{state},
+			</if>
+			updated = now()
+		</trim>
+		where id=#{id}
+	</update>
+
+</mapper>

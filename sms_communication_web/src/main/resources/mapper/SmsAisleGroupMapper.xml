@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsAisleGroupDao">
+	<!-- Result Map -->
+	<resultMap id="BaseResultMap" type="com.dzd.phonebook.util.SmsAisleGroup">
+		<result column="one_interval_price" property="oneIntervalPrice" />
+		<result column="one_interval_start" property="oneIntervalStart" />
+		<result column="one_interval_end" property="oneIntervalEnd" />
+		<result column="two_interval_price" property="twoIntervalPrice" />
+		<result column="two_interval_start" property="twoIntervalStart" />
+		<result column="two_interval_end" property="twoIntervalEnd" />
+		<result column="three_interval_price" property="threeIntervalPrice" />
+		<result column="three_interval_start" property="threeIntervalStart" />
+		<result column="three_interval_end" property="threeIntervalEnd" />
+	</resultMap>
+
+	<!-- 查询的列 -->
+	<sql id="Base_Column_List">
+		id,one_interval_price,one_interval_start,one_interval_end,two_interval_price,two_interval_start,two_interval_end,three_interval_price,three_interval_start,three_interval_end
+		,notice,hint,signature
+	</sql>
+
+
+	<!-- 查询条件 -->
+	<sql id="Example_Where_Clause">
+		where 1=1
+		<trim suffixOverrides=",">
+			<if test="id != null">
+				and id = #{id}
+			</if>
+		</trim>
+	</sql>
+
+	<!-- 查询通道配置的价格区间 -->
+	<select id="querySmsAisleGroupById" parameterType="Object"
+		resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List"></include>
+		FROM sms_aisle_group
+		WHERE id = #{aisleGroupId}
+	</select>
+
+	
+</mapper>

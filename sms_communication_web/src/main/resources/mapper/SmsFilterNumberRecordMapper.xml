@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsFilterNumberRecordDao">
+
+    <select id="querySmsFilterNumberRecordPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+            resultType="com.dzd.phonebook.entity.SmsFilterNumberRecord">
+        select
+        telecomNumber,
+        unicomNumber,
+        mobileNumber,
+        duplicateNumber,
+        duplicateNumber,
+        wrongNumber,
+        name,
+        email,
+        time
+        from (select
+        telecom_number telecomNumber,
+        unicom_number unicomNumber,
+        mobile_number mobileNumber,
+        duplicate_number as duplicateNumber,
+        wrong_number as wrongNumber,
+        time,
+        name,
+        (select email from sms_user su where su.id=u_id) email
+        from sms_filter_number_record)tab where 1=1
+        <if test="condition != null and condition.email != null">
+            and email like '%${condition.email}%'
+        </if>
+        order by time desc
+    </select>
+
+    <!--添加手机过滤记录-->
+    <insert id="saveFilterNumberRecord" parameterType="com.dzd.phonebook.entity.SmsFilterNumberRecord">
+		insert into sms_filter_number_record (u_id,name,time,telecom_number,unicom_number,mobile_number,duplicate_number,wrong_number)
+		  values(#{uid},#{name},now(),#{telecomNumber},#{unicomNumber},#{mobileNumber},#{duplicateNumber},#{wrongNumber});
+	</insert>
+
+    <update id="updateOperatorSectionNo" parameterType="Object">
+		UPDATE sms_operator_section_no SET section_no = #{sectionNo} WHERE type = #{type};
+	</update>
+
+    <select id="queryOperatorSectionNo" resultType="com.dzd.phonebook.entity.OperatorSectionNo">
+		SELECT a.type,a.section_no sectionNo FROM sms_operator_section_no a
+	</select>
+
+</mapper>   

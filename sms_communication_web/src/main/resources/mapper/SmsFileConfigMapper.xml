@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsFileConfigDao">
+	<sql id="BaseColumnSQL">
+		id,sms_uid,uuid,fileName,created,type,phone,phoneSize
+	</sql>
+
+
+	<!-- 查询上传文件的配置信息 -->
+	<select id="querySmsFileConfigList" resultType="com.dzd.phonebook.entity.SmsFileConfig">
+		SELECT
+		<include refid="BaseColumnSQL" />
+		FROM sms_file_config
+		WHERE uuid = #{uuid}
+		<if test="fileName != null">
+			and fileName = #{fileName}
+		</if>
+	</select>
+
+	<!-- 新增 -->
+	<insert id="add" parameterType="Object">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+			keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO
+		sms_file_config(id,sms_uid,uuid,fileName,created,type,phone,phoneSize)
+		VALUES(#{id},#{sms_uid},#{uuid},#{fileName},now(),#{type},#{phone},#{phoneSize})
+	</insert>
+
+
+	<delete id="deleteByUUID" parameterType="Object">
+		DELETE FROM sms_file_config
+		WHERE uuid = #{uuid}
+		<if test="fileName != null">
+			and fileName = #{fileName}
+		</if>
+	</delete>
+</mapper>

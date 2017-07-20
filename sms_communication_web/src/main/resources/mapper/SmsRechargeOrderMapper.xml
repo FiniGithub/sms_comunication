@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsRechargeOrderDao">
+    <!-- Result Map -->
+    <resultMap id="BaseResultMap" type="com.dzd.phonebook.entity.SmsRechargeOrder">
+        <result column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="sms_user_id" property="smsUserId"/>
+        <result column="orderNo" property="orderNo"/>
+        <result column="created" property="created"/>
+        <result column="updated" property="updated"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+
+    <!-- 查询的列 -->
+    <sql id="Base_Column_List">
+		id,user_id,sms_user_id,orderNo,smsNumber,money,created,updated,status
+	</sql>
+
+    <!-- 新增充值记录 -->
+    <insert id="insertSmsRechargeOrder" parameterType="Object">
+        <selectKey resultType="java.lang.Integer" order="AFTER"
+                   keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO sms_recharge_order(id,user_id,sms_user_id,orderNo,smsNumber,money,created,status)
+        VALUES (#{id},#{userId},#{smsUserId},#{orderNo},#{smsNumber},#{money},now(),#{status})
+    </insert>
+
+
+    <!-- 根据订单号查询订单 -->
+    <select id="queryRechargeOrderByOrderId" parameterType="Object" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+         FROM sms_recharge_order
+        where orderNo = #{orderId}
+    </select>
+
+    <update id="updateSmsRechargeOrder" parameterType="Object" >
+        update sms_recharge_order
+        set status = #{status},updated=#{updated}
+        where id = #{id}
+    </update>
+
+</mapper>

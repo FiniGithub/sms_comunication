@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsWordShieldingDao">
+    <!-- Result Map -->
+    <resultMap id="BaseResultMap" type="com.dzd.phonebook.entity.SmsWordShielding">
+        <result column="id" property="id"/>
+        <result column="word" property="word"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- sms_word_shielding table all fields -->
+    <sql id="Base_Column_List">
+		id,word,create_time,update_time
+	</sql>
+
+
+    <!-- 查询条件 -->
+    <sql id="Example_Where_Clause">
+        where 1=1
+        <trim suffixOverrides=",">
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="word != null">
+                and word = #{word}
+            </if>
+            <if test="createTime != null and createTime != ''">
+                and createTime = #{createTime}
+            </if>
+            <if test="updateTime != null and updateTime != ''">
+                and updateTime = #{updateTime}
+            </if>
+            <if test="level != null and level != ''">
+                and level = #{level}
+            </if>
+
+        </trim>
+    </sql>
+
+
+    <insert id="insert" parameterType="Object">
+        insert into sms_word_shielding (create_time,word,level)
+        values ( now(),#{word,jdbcType=LONGVARCHAR},#{level})
+
+        <!-- insert into sms_word_shielding (create_time, word) values (now(),
+            #{word,jdbcType=VARCHAR}) -->
+    </insert>
+
+
+    <!-- 插入记录 -->
+    <insert id="add" parameterType="Object">
+        <selectKey resultType="java.lang.Integer" order="AFTER"
+                   keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into sms_word_shielding(id,word,createTime,updateTime,level)
+        values(#{id},#{word},#{createTime},#{updateTime},#{level})
+    </insert>
+
+    <!-- 根据id，修改记录 -->
+    <update id="update" parameterType="Object">
+        <!-- update sms_word_shielding set updateTime=#{updateTime,jdbcType=VARCHAR},
+            word=#{word,jdbcType=VARCHAR} where id=#{id} -->
+        update sms_word_shielding
+        set
+        update_time =now(),<!-- #{updateTime,jdbcType=TIMESTAMP}, -->
+        word = #{word,jdbcType=LONGVARCHAR},level=#{level}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+
+    <!-- 修改记录，只修改只不为空的字段 -->
+    <update id="updateBySelective" parameterType="Object">
+        update sms_word_shielding set
+        <trim suffixOverrides=",">
+            <if test="word != null  ">
+                word=#{word},
+            </if>
+            <if test="createTime != null  and createTime != '' ">
+                createTime=#{createTime},
+            </if>
+            <if test="updateTime != null  and updateTime != '' ">
+                updateTime=#{updateTime},
+            </if>
+            <if test="level != null  and level != '' ">
+                level=#{level},
+            </if>
+
+        </trim>
+        where id=#{id}
+    </update>
+
+    <!-- 删除记录 -->
+    <delete id="delete" parameterType="Object">
+		delete from sms_word_shielding
+		where id = #{id}
+	</delete>
+
+    <!-- 删除记录 -->
+    <!-- <delete id="deleteByword" parameterType="Object"> delete from sms_word_shielding
+        where word = #{id} </delete> -->
+
+    <!-- 根据id查询 菜单按钮 -->
+    <select id="queryById" resultMap="BaseResultMap" parameterType="Object">
+        select
+        <include refid="Base_Column_List"/>
+        from sms_word_shielding where id = #{id}
+    </select>
+
+
+    <!-- 查询所有菜单按钮 -->
+    <select id="queryByAll" resultMap="BaseResultMap" parameterType="Object">
+        select
+        <include refid="Base_Column_List"/>
+        from sms_word_shielding
+    </select>
+
+
+    <!-- 根据word查询 菜单按钮 -->
+    <select id="queryByword" resultMap="BaseResultMap"
+            parameterType="Object">
+        select
+        <include refid="Base_Column_List"/>
+        from sms_word_shielding where word = #{word}
+    </select>
+
+    <!-- 根据menuUrl查询 菜单按钮 -->
+    <select id="queryByMenuUrl" resultMap="BaseResultMap"
+            parameterType="Object">
+        select
+        <include refid="Base_Column_List"/>
+        from sms_word_shielding b WHERE EXISTS (
+        SELECT 1 FROM sys_menu m WHERE
+        m.id = b.word AND IFNULL(m.deleted,0) = 0 AND m.url = #{url}
+        )
+    </select>
+
+
+    <!-- 菜单按钮 列表总数 -->
+    <select id="queryByCount" resultType="java.lang.Integer"
+            parameterType="Object">
+        select count(1) from sms_word_shielding
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <!-- 查询菜单按钮列表 -->
+    <select id="queryByList" resultMap="BaseResultMap"
+            parameterType="Object">
+        select
+        <include refid="Base_Column_List"/>
+        from sms_word_shielding
+        <include refid="Example_Where_Clause"/>
+        <if test="pager.orderCondition != null and pager.orderCondition != ''">
+            ${pager.orderCondition}
+        </if>
+        <if
+                test="pager.mysqlQueryCondition != null and pager.mysqlQueryCondition != ''">
+            ${pager.mysqlQueryCondition}
+        </if>
+    </select>
+
+
+    <!-- 根据用户id查询按钮 -->
+    <select id="getMenuBtnByUser" resultMap="BaseResultMap"
+            parameterType="Object">
+		SELECT DISTINCT * FROM sms_word_shielding b
+		WHERE EXISTS
+		(
+		SELECT * FROM sys_role_rel r
+		WHERE r.objId = b.id AND r.relType = 2
+		AND EXISTS (
+		SELECT 1 FROM sys_role_rel u WHERE u.roleId = r.roleId AND
+		u.relType = 1 AND
+		u.objId =#{userId}
+		)
+		)
+	</select>
+
+    <delete id="deletewords" parameterType="Object">
+        delete from sms_word_shielding where word not in
+        <foreach collection="list" item="word" index="index" open="("
+                 close=")" separator=",">
+            #{word}
+        </foreach>
+    </delete>
+
+
+    <select id="querShieldWordListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+            resultType="com.dzd.phonebook.util.SmsShieldWord">
+        select
+        id,
+        name,
+        type,
+        word_name wordName,
+        comment,
+        create_time createTime,
+        level
+        from sms_shield_word where 1=1
+        <if test="condition != null and condition.level != null">
+            and level=#{condition.level}
+        </if>
+        <if test="condition != null and condition.name != null">
+            and word_name like '%${condition.name}%'
+        </if>
+        <if test="condition != null and condition.type != null">
+            and type =#{condition.type}
+        </if>
+        order by level
+    </select>
+
+    <insert id="saveShieldWord" parameterType="com.dzd.phonebook.util.SmsShieldWord">
+		insert into sms_shield_word
+		(name,type,word_name,comment,create_time,level)
+		values
+		(#{name},#{type},#{wordName},#{comment},now(),#{level})
+	</insert>
+
+    <update id="updateShieldWord" parameterType="com.dzd.phonebook.util.SmsShieldWord">
+		update sms_shield_word set
+		name = #{name},
+		type = #{type},
+		word_name = #{wordName},
+		comment = #{comment},
+		update_time = now(),
+		level = #{level}
+		where id = #{id}
+	</update>
+
+    <select id="queryShieldWordById" parameterType="java.lang.Integer"
+            resultType="com.dzd.phonebook.util.SmsShieldWord">
+		select id,name,type,word_name wordName,comment,level
+		from sms_shield_word where id = #{id}
+	</select>
+
+    <delete id="deleteShieldWord" parameterType="java.lang.Integer">
+		delete  from sms_shield_word where id=#{id}
+	</delete>
+
+    <select id="querySmsShieldWordList" parameterType="java.lang.Integer"
+            resultType="com.dzd.phonebook.util.SmsShieldWord">
+		select id,name,type,word_name wordName,comment,level
+		from sms_shield_word where type = #{type}
+	</select>
+</mapper>   

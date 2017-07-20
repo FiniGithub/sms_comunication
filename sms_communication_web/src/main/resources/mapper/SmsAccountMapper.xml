@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsAccountDao">
+    <!--短信账户列表-->
+    <select id="querySmsAccountUserListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+            resultType="com.dzd.phonebook.util.SmsUser">
+        select * from(
+        select
+        id,
+        email,
+        state,
+        name,
+        if(isnull(sumNum),0,sumNum) sumNum,
+        if(isnull(surplusNum),0,surplusNum) surplusNum,
+        if(isnull(sumNum-surplusNum),0,sumNum-surplusNum) usedNum,
+        createTime,
+        sysUserId,
+        aisleGroupType,
+        groupTypeId,
+        bId,
+        nickName,
+        checkState
+        from (select
+        su.id,
+        su.email,
+        su.state,
+        su.name,
+        su.bId,
+        su.check_state checkState,
+        su.sys_user_id sysUserId,
+        sub.surplus_num surplusNum,
+        su.aisle_group_id groupTypeId,
+        (select sum(operate_num) from sms_user_money_running m where m.operate_num>0 and sub.user_id=m.sms_user_id)
+        sumNum,
+        (select name from sms_aisle_group where id = su.aisle_group_id) aisleGroupType,
+        (select email from sys_user where id = su.bId) nickName,
+        su.create_time as createTime
+        from sms_user su
+        LEFT JOIN sms_user_blank sub on su.id = sub.user_id where su.check_state!=0
+        ) ss where 1=1
+        <if test="condition != null and condition.state != null">
+            and ss.state = ${condition.state}
+        </if>
+        <if test="condition != null and condition.aisleType != null">
+            and ss.groupTypeId = ${condition.aisleType}
+        </if>
+        <if test="condition != null and condition.email != null">
+            and ss.email like '%${condition.email}%'
+        </if>
+        <if test="condition != null and condition.nickName != null">
+            and ss.nickName ='${condition.nickName}'
+        </if>
+        <if test="condition != null and condition.smsUserVal !=null  and condition.smsUserVal.size >0 ">
+            and ss.sysUserId in
+            <foreach collection="condition.smsUserVal" item="id"
+                     index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+            /*(${condition.smsUserVal})*/
+        </if>
+        )tab
+        <if test="condition != null and condition.sortVal != null">
+            ${condition.sortVal}
+        </if>
+    </select>
+
+    <!--根据sys_user_id 查询下面所有子bid集合-->
+    <select id="queryBids" parameterType="java.util.List" resultType="java.lang.Integer">
+        select sys_user_id from sms_user where bId in
+        <if test="list !=null and list.size >0 ">
+            <foreach collection="list" item="id"
+                     index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+</mapper>

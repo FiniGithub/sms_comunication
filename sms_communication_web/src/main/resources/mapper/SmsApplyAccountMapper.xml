@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsApplyAccountDao">
+    <!--申请账户列表-->
+    <select id="queryApplyAccountlistPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+            resultType="com.dzd.phonebook.util.SmsUser">
+        select
+        id,
+        nickName,
+        name,
+        contact,
+        phone,
+        REPLACE(signature,'】','') signature,
+        describes,
+        createTime,
+        checkState,
+        sysUserId
+        from(
+        select
+        su.id,
+        (select nickName from sys_user where id = su.proposer_id) nickName,
+        su.name,
+        su.contact,
+        su.phone,
+        su.describes describes,
+        su.create_time createTime,
+        su.check_state checkState,
+        su.sys_user_id sysUserId,
+        REPLACE(su.signature,'【','') signature1,
+        (select signature from sms_aisle_group where id=su.aisle_group_id) signature2,
+        (select CONCAT_WS(',',signature1,signature2)) signature
+        from sms_user su
+        where 1=1 and su.check_state=0
+        <if test="condition != null and condition.phone != null and condition.phone != ''">
+            and phone like '%${condition.phone}%'
+        </if>
+        <if test="condition != null and condition.smsUserVal !=null  and condition.smsUserVal.size >0 ">
+            and su.proposer_id in
+            <foreach collection="condition.smsUserVal" item="id"
+                     index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        ) tab
+        <if test="condition != null and condition.sortVal != null">
+            ${condition.sortVal}
+        </if>
+    </select>
+
+    <!--根据id查询申请用户信息-->
+    <select id="queryApplyAccountById" parameterType="Object" resultType="com.dzd.phonebook.util.SmsUser">
+		select
+		id,
+		name,
+		contact,
+		phone,
+		signature,
+		describes,
+		createTime,
+		checkState,
+		sysUserId,
+		address,
+		telphone,
+		userEmail,
+		qq
+		from(
+		select
+		su.id,
+		su.name,
+		su.contact,
+		su.phone,
+		su.signature signature,
+		su.describes describes,
+		su.create_time createTime,
+		su.check_state checkState,
+		su.sys_user_id sysUserId,
+		su.address,
+		su.qq,
+		su.telphone,
+		su.user_email userEmail
+		from sms_user su ) tab where id=#{id};
+	</select>
+
+    <!--查询用户名是否存在-->
+    <select id="querySmsUserName" parameterType="com.dzd.phonebook.util.SmsUser" resultType="java.lang.Integer">
+        select count(*) num from sms_user where name=#{name}
+        <if test="id != null">
+            and id not in (select id from sms_user where id=#{id})
+        </if>
+    </select>
+
+    <!-- 插入申请账户信息-->
+    <insert id="saveSmsUserApplyAccount" parameterType="com.dzd.phonebook.util.SmsUser">
+        <selectKey resultType="java.lang.Integer" order="AFTER"
+                   keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into
+        sms_user(id,`name`,address,create_time,proposer_id,phone,user_email,qq,check_state,signature,contact,describes,`key`,sys_user_id,telphone)
+        values(#{id},#{name},#{address},now(),#{proposerId},#{phone},#{userEmail},#{qq},#{checkState},#{signature},#{contact},#{describes},#{key},#{sysUserId},#{telphone})
+    </insert>
+
+    <!--删除申请账户-->
+    <delete id="deleteApplyAccount" parameterType="java.util.List">
+        delete from sms_user where id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

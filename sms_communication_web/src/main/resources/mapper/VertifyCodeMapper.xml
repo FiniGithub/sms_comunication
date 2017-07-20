@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.VertifyCodeDao">
+	<select id="getCodeCountByToday"  resultType="com.dzd.phonebook.entity.VertifyCode">
+		select *
+		from sms_user_vertifycode
+		where  phone=#{phone} 
+		and DATE_FORMAT(create_time,'%Y%m%d') = DATE_FORMAT(now(),'%Y%m%d')
+	</select>
+	
+	<select id="queryCodeByPhoneAndCode"  resultType="com.dzd.phonebook.entity.VertifyCode">
+		select id,vertifycode,create_time
+		from sms_user_vertifycode
+		where  phone=#{phone} and vertifycode = #{code} and
+		create_time>=CURRENT_TIMESTAMP - INTERVAL 30 MINUTE
+	</select>
+	
+	<!-- 查询今日是否有发送短信 -->
+	<select id="getCodeCountByPhone"  resultType="com.dzd.phonebook.entity.VertifyCode">
+		SELECT id,vertifycode,create_time as countToday
+		FROM sms_user_vertifycode
+		WHERE phone = #{phone} 
+		AND DATE_FORMAT(create_time,'%Y%m%d') = DATE_FORMAT(now(),'%Y%m%d')
+	</select>
+
+	<!-- 查询今日发送短信的次数 -->
+	<select id="getCodeCountByPhoneAndType"  resultType="com.dzd.phonebook.entity.VertifyCode">
+		SELECT id,vertifycode,create_time as countToday
+		FROM sms_user_vertifycode
+		WHERE phone = #{phone} and type=#{type}
+		AND DATE_FORMAT(create_time,'%Y%m%d') = DATE_FORMAT(now(),'%Y%m%d')
+	</select>
+	
+	<insert id="add" parameterType="Object">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+			keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO sms_user_vertifycode(phone,vertifycode,create_time,type)
+		VALUE(#{phone},#{vertifycode},#{create_time},#{type})
+	</insert>
+	
+	<update id="update" parameterType="Object" >
+		UPDATE sms_user_vertifycode
+		set vertifycode = #{vertifycode},
+			create_time = now()
+		where phone = #{phone}
+	
+	</update>
+
+</mapper>   

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SysConsultationFeedbackDao">
+	<!--咨询与反馈列表-->
+	<select id="querySysListPage" parameterType="com.dzd.phonebook.util.DzdPageParam" resultType="com.dzd.phonebook.entity.SysConsultationFeedback">
+		select
+		id,
+		email,
+		content,
+		contact,
+		phone,
+		create_time createTime
+		from sys_consultation_feedback
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+	</select>
+
+	<!-- 插入咨询与反馈信息 -->
+	<insert id="saveData" parameterType="com.dzd.phonebook.entity.SysConsultationFeedback">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+				   keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into
+		sys_consultation_feedback(email,content,contact,phone,create_time)
+		values(#{email},#{content},#{contact},#{phone},now())
+	</insert>
+
+	<!--删除-->
+	<delete id="delete" parameterType="java.util.List">
+		delete from sys_consultation_feedback where id IN
+		<foreach item="id" collection="list" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+</mapper>

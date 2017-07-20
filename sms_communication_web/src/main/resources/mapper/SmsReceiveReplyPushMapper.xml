@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsReceiveReplyPushDao">
+	<!-- Result Map -->
+	<resultMap id="BaseResultMap" type="com.dzd.phonebook.entity.SmsReceiveReplyPush">
+		<result column="id" property="id" />
+		<result column="phone" property="phone" />
+		<result column="content" property="content" />
+		<result column="name" property="name" />
+		<result column="create_time" property="createTime" />
+		<result column="content" property="contents" />
+		<result column="region" property="region" />
+		<result column="email" property="email" />
+
+	</resultMap>
+
+	<sql id="Example_Where_Clause">
+		where 1=1
+		<trim suffixOverrides=",">
+			<if test="condition != null and condition.start != null">
+				and date_format(r.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]>
+				date_format(#{condition.start,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+				and date_format(r.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]>
+				date_format(#{condition.end,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+			</if>
+			<if test="condition != null and condition.SmsBlacklistHone != null">
+				and r.phone like '%${condition.SmsBlacklistHone}%'
+			</if>
+			<if test="condition != null and condition.contentInput != null">
+				and s.content like '%${condition.contentInput}%'
+			</if>
+			<if test="condition != null and condition.emailInput != null">
+				and u.email like '%${condition.emailInput}%'
+			</if>
+			<if test="condition != null and condition.nameInput != null">
+				and u.name like '%${condition.nameInput}%'
+			</if>
+			<if test="condition != null and condition.smsUserVal != null">
+				and u.bId in (${condition.smsUserVal})
+			</if>
+			<if test="condition != null and condition.smsAisleId != null">
+				and r.sms_aisle_id = (${condition.smsAisleId})
+			</if>
+		</trim>
+	</sql>
+
+
+	<select id="queryUserPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="com.dzd.phonebook.entity.SmsReceiveReplyPush">
+		select * from (
+		select u.name,
+		u.email ,
+		r.id,
+		r.phone,
+		r.region ,
+		sa.name aname,
+		r.content,
+		r.state,
+		r.create_time createTime,
+		s.content contents,
+		(select sys_user.nickName from sys_user where sys_user.id = u.bId) ywName,
+		(select sys_user.nickName from sys_user where sys_user.id = u.team_id) teamName
+		from sms_receive_reply_push r
+		left join sms_user u on r.sms_user_id=u.id
+		left join sms_send_task s
+		on r.sms_send_task_id= s.id
+		left join sms_aisle sa on sa.id = r.sms_aisle_id
+		<include refid="Example_Where_Clause" />
+		) ss
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+
+	</select>
+
+	<!-- 删除记录 -->
+	<delete id="deleteSmsReceive" parameterType="Object">
+		delete from sms_receive_reply_push where id = #{id}
+	</delete>
+
+
+</mapper>   

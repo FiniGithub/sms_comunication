@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.UserMsmSendDao">
+
+    <select id="queryMsmSendListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+            resultType="com.dzd.phonebook.util.SmsSendTask">
+        select * from (select
+        ssk.id,
+        su.email smsUserEmail,
+        sag.name groupName,
+        ssk.send_time sendTime,
+        ssk.send_type sendType,
+        ssk.send_num sendNum,
+        ssk.billing_num billingNum,
+        ssk.expect_deduction expectDeduction,
+        ssk.actual_deduction actualDeduction,
+        ssk.state,
+        ssk.audit_state auditState,
+        ssk.error_phone_num errorPhoneNum,
+        ssk.blacklist_phone_num blacklistPhoneNum,
+        ssk.audit_time auditTime,
+        ssk.update_time updateTime,
+        ssk.content,
+        ssk.create_time createTime,
+        ssk.actual_num actualNum
+        from sms_send_task ssk
+        LEFT JOIN sms_user su on su.id = ssk.sms_user_id
+        LEFT JOIN sms_aisle_group sag on sag.id=ssk.sms_aisle_group_id
+        where 1=1
+        	and	(ssk.timing_time is null || date_format(ssk.timing_time, '%Y-%m-%d %H:%i')
+        	<![CDATA[ < ]]> date_format(now(), '%Y-%m-%d %H:%i:%s'))
+
+        <if test="condition!=null and condition.superAdmin!=null and condition.superAdmin!=1">
+                and (su.sys_user_id = #{condition.sysUserId}  or su.bid = #{condition.sysBid})
+        </if>
+
+        <if test="condition != null and condition.startInput != null">
+            and date_format(ssk.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]>
+            date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+            and date_format(ssk.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]>
+            date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+        </if>
+
+        <if test="condition != null and condition.smsUserEmail != null">
+            and su.email like '%${condition.smsUserEmail}%'
+        </if>
+
+
+        <if test="condition != null and condition.sendType != null">
+            and ssk.send_type = #{condition.sendType}
+        </if>
+
+        <if test="condition != null and condition.taskId != null">
+            and ssk.id = #{condition.taskId}
+        </if>
+
+        <if test="condition != null and condition.groupId != null">
+            and sag.id = #{condition.groupId}
+        </if>
+
+
+        order by ssk.create_time desc
+        ) ss
+        <if test="condition != null and condition.sortVal != null">
+            ${condition.sortVal}
+        </if>
+    </select>
+
+    <select id="queryMsmSendPhoneByid" parameterType="java.lang.Integer" resultType="java.lang.String">
+		select phone from sms_send_task_phone where sms_send_task_id = #{msmSendId}
+	</select>
+
+
+    <select id="queryMsmSendDetailsListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+            resultType="com.dzd.phonebook.util.SmsSendLog">
+        select * from
+        (select
+        ssk.id,
+        sstp.phone receivePhone,
+        sstp.region,
+        ssg.aisle_deduction aisleDeduction,
+        ssg.send_phone sendPhone,
+        sstp.state,
+        sstp.fee agencyDeduction,
+        ssg.send_time sendTime,
+        ssg.feedback_time feedbackTime,
+        ssk.content,
+        ssk.create_time createTime
+        from sms_send_task_phone sstp
+        LEFT JOIN sms_send_task ssk on sstp.sms_send_task_id = ssk.id
+        LEFT JOIN sms_send_log ssg on (ssg.sms_send_task_id = ssk.id and ssg.receive_phone = sstp.phone)
+        LEFT JOIN sms_user su on su.id = ssk.sms_user_id
+        where 1=1
+        <if test="condition != null and condition.startInput != null">
+            and date_format(ssk.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]>
+            date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+            and date_format(ssk.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]>
+            date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+        </if>
+        <if test="condition != null and condition.state != null">
+            and sstp.state = ${condition.state}
+        </if>
+        <if test="condition != null and condition.content != null">
+            and ssk.content like '%${condition.content}%'
+        </if>
+        <if test="condition != null and condition.ids != null">
+            and ssk.id = ${condition.ids}
+        </if>
+        <if test="condition != null and condition.sendType != null">
+            and ssk.send_type = ${condition.sendType}
+        </if>
+        <if test="condition != null and condition.sysUserId != null">
+            and su.sys_user_Id = ${condition.sysUserId}
+        </if>
+        order by ssg.send_time desc
+        ) ss
+        <if test="condition != null and condition.sortVal != null">
+            ${condition.sortVal}
+        </if>
+    </select>
+
+
+    <select id="querySmsSendById" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		select state from sms_send_task where id=#{smsTaskId}
+	</select>
+
+    <update id="updateSmsSendById" parameterType="java.lang.Integer">
+		update sms_send_task set state=9,audit_state=4 where id=#{smsTaskId}
+	</update>
+
+
+    <!-- 查询条件 -->
+    <sql id="Example_Where_Clause">
+        where 1=1
+        <trim suffixOverrides=",">
+            <if test="startInput != null and startInput != ''">
+                and date_format(ssk.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]>
+                date_format(#{startInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+                and date_format(ssk.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]>
+                date_format(#{endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+            </if>
+            <if test="stateBs == null or stateBs == ''">
+                <if test="state != null and state != ''">
+                    and sstp.state = #{state}
+                </if>
+            </if>
+            <if test="stateBs != null and stateBs != ''">
+                <![CDATA[ and sstp.state <99 and sstp.state>=2 ]]>
+            </if>
+            <if test="content != null and content != ''">
+                and ssk.content like '%${content}%'
+            </if>
+            <if test="id != null and id != ''">
+                and ssk.id = #{id}
+            </if>
+            <if test="receivePhone !=null and receivePhone!=''">
+                and sstp.phone = #{receivePhone}
+            </if>
+            <if test="sysUserId != null and sysUserId != ''">
+                and su.sys_user_id = #{sysUserId}
+            </if>
+            <if test=" type !=null and type == -2">
+                and (sstp.state = 0 or sstp.state = 99)
+            </if>
+            <if test=" type !=null and type == -1">
+                and sstp.state = 3
+            </if>
+            <if test=" type !=null and type == 0">
+                <![CDATA[ and sstp.state <99 and sstp.state>3 ]]>
+            </if>
+            <if test=" type !=null and type == 1">
+                and sstp.state = 100
+            </if>
+
+
+        </trim>
+    </sql>
+
+
+    <select id="queryByList" resultType="com.dzd.phonebook.util.SmsSendLog" parameterType="Object">
+        select
+        ssk.id,
+        su.`name` smsUserName,
+        su.email smsUserEmail,
+        sa.name aisleName,
+        sstp.phone receivePhone,
+        sstp.region,
+        sstp.state,
+        sstp.billing_num billingNnum,
+        sstp.send_time sendTime,
+        sstp.receive_time feedbackTime,
+        sstp.push_state receiveState,
+        sstp.push_num pushNum,
+        ssk.content,
+        sstp.supplier,
+        ssk.create_time createTime,
+        (select nickName from sys_user where id=su.team_id) temaName,
+        sstp.receive_state fkState,
+        sstp.receive_code  receiveCode
+        from sms_send_task_phone  sstp
+        LEFT JOIN sms_send_task ssk on sstp.sms_send_task_id = ssk.id
+        LEFT JOIN sms_user su on su.id = ssk.sms_user_id
+        LEFT JOIN sms_aisle sa on sa.id = sstp.aid
+        <include refid="Example_Where_Clause"/>
+        order by ssk.id desc
+        <if test="pager.orderCondition != null and pager.orderCondition != ''" >
+            ${pager.orderCondition}
+        </if>
+        <if test="pager.mysqlQueryCondition != null and pager.mysqlQueryCondition != ''" >
+            ${pager.mysqlQueryCondition}
+        </if>
+
+        <!--select
+        su.email smsUserEmail,
+        ssk.id,
+        sstp.phone receivePhone,
+        sstp.region,
+        ssg.aisle_deduction aisleDeduction,
+        ssg.send_phone sendPhone,
+        sstp.state,
+        sstp.fee agencyDeduction,
+        sstp.billing_num billingNnum,
+        ssg.send_time sendTime,
+        arl.create_time feedbackTime,
+        arl.receive_state receiveState,
+        ssk.content,
+        ssk.create_time createTime
+        from sms_send_task_phone sstp
+        LEFT JOIN sms_send_task ssk on sstp.sms_send_task_id = ssk.id
+        LEFT JOIN sms_send_log ssg on (ssg.sms_send_task_id = ssk.id and ssg.receive_phone = sstp.phone)
+        LEFT JOIN sms_user su on su.id = ssk.sms_user_id
+        LEFT JOIN sms_receive_log arl on arl.sms_task_id = ssk.id and arl.phone = sstp.phone
+        <include refid="Example_Where_Clause"/>
+        order by ssk.id desc
+        <if test="pager.orderCondition != null and pager.orderCondition != ''">
+            ${pager.orderCondition}
+        </if>
+        <if test="pager.mysqlQueryCondition != null and pager.mysqlQueryCondition != ''">
+            ${pager.mysqlQueryCondition}
+        </if>-->
+    </select>
+
+    <select id="queryByCount" resultType="java.lang.Integer" parameterType="Object">
+        select count(1) from sms_send_task_phone sstp
+        LEFT JOIN sms_send_task ssk on sstp.sms_send_task_id = ssk.id
+        LEFT JOIN sms_user su on su.id = ssk.sms_user_id
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <sql id="User_Where_Clause">
+        where 1=1
+        <trim suffixOverrides=",">
+            <if test="condition != null and condition.start != null">
+                and date_format(r.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]>
+                date_format(#{condition.start,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+                and date_format(r.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]>
+                date_format(#{condition.end,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+            </if>
+
+            <if test="condition != null and condition.sysUserId != null">
+                and u.sys_user_id = ${condition.sysUserId}
+            </if>
+            <if test="condition != null and condition.SmsBlacklistHone != null">
+                and r.phone like '%${condition.SmsBlacklistHone}%'
+            </if>
+            <if test="condition != null and condition.contentInput != null">
+                and s.content like '%${condition.contentInput}%'
+            </if>
+            <if test="condition != null and condition.emailInput != null">
+                and u.email like '%${condition.emailInput}%'
+            </if>
+            <if test="condition != null and condition.nameInput != null">
+                and u.name like '%${condition.nameInput}%'
+            </if>
+
+        </trim>
+    </sql>
+
+
+    <select id="queryUserPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+            resultType="com.dzd.phonebook.entity.SmsReceiveReplyPush">
+        select * from (
+        select u.name,
+        u.email ,
+        r.id,
+        r.phone,
+        r.region ,
+        sa.name aname,
+        r.content,
+        r.state,
+        r.create_time createTime,
+        s.content contents
+        from sms_receive_reply_push r
+        left join sms_user u on r.sms_user_id=u.id
+        left join sms_send_task s
+        on r.sms_send_task_id= s.id
+        left join sms_aisle sa on sa.id = r.sms_aisle_id
+        <include refid="User_Where_Clause"/>
+        ) ss
+        <if test="condition != null and condition.sortVal != null">
+            ${condition.sortVal}
+        </if>
+
+    </select>
+
+    <select id="querySmsGroupByUserId" parameterType="java.lang.Integer"
+            resultType="com.dzd.phonebook.util.SmsAisleGroup">
+		select 
+			shu.id,
+			sag.`name` 
+		from 
+			sms_aisle_group sag,
+			sms_aisle_group_has_sms_user shu 
+		where sag.id = shu.sms_aisle_group_id 
+		and sag.state = 1
+		and  shu.sms_user_id = #{uid}
+	</select>
+
+    <!-- 查询通道 -->
+    <select id="queryTaskAisleGroup" parameterType="Object" resultType="com.dzd.phonebook.util.SmsAisleGroup">
+        select sag.id,sag.name
+        from sms_aisle_group sag
+        <if test="superAdmin!=null and superAdmin!=1">
+            INNER JOIN sms_user su on su.aisle_group_id = sag.id
+            WHERE 1=1 and su.id = #{uid} or su.bid = #{bid}
+        </if>
+        group by sag.name
+
+    </select>
+
+
+    <select id="queryTaskAisleType" parameterType="Object" resultType="com.dzd.phonebook.util.SmsAisleGroup">
+        select a.id id,a.`name` typeName from sms_aisle a
+    </select>
+
+
+
+</mapper>

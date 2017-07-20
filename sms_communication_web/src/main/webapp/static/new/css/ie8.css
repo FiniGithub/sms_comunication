@@ -1,0 +1,20 @@
+*{
+
+	margin:0;padding:0;
+
+ }
+
+ img{
+
+ 	border: none;
+
+ }
+.index-btn-box{
+	overflow: hidden;text-align: center;
+}
+.index-btn,.inp-box{
+	display: inline-block!important;
+}
+.index-btn{
+	margin-left: 20px;line-height: normal;
+}

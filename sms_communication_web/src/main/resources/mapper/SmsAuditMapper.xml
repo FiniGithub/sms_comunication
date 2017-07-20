@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsAuditDao">
+	
+	<select id="querySmsAuditListPage" parameterType="com.dzd.phonebook.util.DzdPageParam" resultType="com.dzd.phonebook.util.SmsSendTask">
+		select * from (select 
+			ssk.id,
+			su.id smsUserId,
+			su.`name` smsUserName,
+		  	su.email smsUserEmail,
+			sag.`name` groupName,
+		  	ssk.send_type sendType,
+		  	ssk.send_num  sendNum,
+			ssk.billing_num billingNum,
+		 	ssk.expect_deduction expectDeduction,
+		  	ssk.actual_deduction actualDeduction,
+			ssk.audit_state auditState,
+			ssk.error_phone_num errorPhoneNum,
+			ssk.blacklist_phone_num blacklistPhoneNum,
+			ssk.audit_time auditTime,
+			ssk.content,
+		  	ssk.create_time createTime,
+		  	(select nickName from sys_user where id=su.team_id) temaName,
+		  	ssk.sms_aisle_group_id  groupId,
+		  	sag.tid 
+		 from sms_send_task ssk
+		 	LEFT JOIN sms_user su on su.id = ssk.sms_user_id
+		 	LEFT JOIN sms_aisle_group sag on sag.id=ssk.sms_aisle_group_id
+		 where 1=1
+		<if test="condition != null and condition.startInput != null">
+				and	date_format(ssk.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]> date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+				and date_format(ssk.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]> date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+		</if>	
+		<if test="condition != null and condition.state != null">
+			and ssk.audit_state = ${condition.state}
+		</if>
+		<if test="condition != null and condition.content != null">
+			and ssk.content like '%${condition.content}%'
+		</if>
+		<if test="condition != null and condition.ids != null">
+			and ssk.id = ${condition.ids}
+		</if>
+		<if test="condition != null and condition.sendType != null">
+			and ssk.send_type = ${condition.sendType}
+		</if>
+		<if test="condition != null and condition.smsUser != null">
+			and su.email like '%${condition.smsUser}%'
+		</if>
+		<if test="condition != null and condition.smsUserVal != null">
+			and su.bId in (${condition.smsUserVal})
+		</if>
+		order by ssk.create_time desc
+		) ss
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+	</select>
+	
+	
+	<update id="updateSmsAudit" parameterType="com.dzd.phonebook.util.SmsSendTask">
+		update sms_send_task set 
+			audit_state = #{auditState},
+			audit_time=now(),
+			update_time=now() 
+		<if test="content!= null and content != '' ">
+			,content=#{content}
+		</if>
+		<if test="groupId!= null and groupId != '' ">
+			,sms_aisle_group_id=#{groupId}
+		</if>
+		<if test="state!= null">
+			,state=${state}
+		</if>
+		<if test="sendTime != null">
+			,send_time=now()
+		</if>
+		
+		where id=#{id}
+	</update>
+	
+	<select id="querySmsSeng" parameterType="java.lang.Integer" resultType="com.dzd.phonebook.util.SmsSendTask">
+		select 
+			id,
+			sms_user_id smsUserId,
+			billing_num billingNum
+		from sms_send_task
+		where id=#{sstid}
+	</select>
+
+</mapper>   

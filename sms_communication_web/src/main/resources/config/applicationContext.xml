@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+      http://www.springframework.org/schema/context
+      http://www.springframework.org/schema/context/spring-context.xsd">
+      
+	<!-- 启动定时器  -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean"> 
+  		<property name="triggers"> 
+			<list> 
+				<!--  <ref bean="zntaskTrigger"/> -->
+			</list>  
+	  	</property> 
+	</bean>
+
+	<bean id="zntask" class="com.dzd.phonebook.timer.FaCalculateService"></bean> 
+
+	<bean id="ZntaskTopSaleJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean"> 
+		<property name="targetObject" ref="zntask"></property> 
+		<property name="targetMethod" value="taCalculateTime"></property> 
+	</bean>
+	
+	<bean id="zntaskTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean"> 
+		<property name="jobDetail"> 
+			<ref bean="ZntaskTopSaleJobDetail"/> 
+		</property> 
+		<property name="cronExpression"> 
+			<value>*/59 * * * * ?</value> <!--0 0 1 * * ?  每日凌晨1点-->   <!-- */5 * * * * ?   每隔5分钟一次 -->   
+		</property>       
+	</bean>
+        
+</beans>

@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.UserFreeTrialDao">
+	
+	<select id="queryUserFreeTriaByPage" parameterType="com.dzd.phonebook.util.DzdPageParam" resultType="com.dzd.phonebook.util.UserFreeTria">
+		select * from (select 
+			suf.id,
+			suf.name,
+			suf.content,
+			sagt.name typeName,
+			su.`name` smsUserName,
+			suf.free_trial_state freeTrialState,
+			suf.create_time createTime,
+			suf.update_time updateTime,
+			suf.audit_time auditTime
+		 from sms_user_free_trial suf
+		 LEFT JOIN sms_user su on su.id=suf.sms_user_id
+		 LEFT JOIN sms_aisle_group_type sagt on sagt.id = suf.free_trial_type
+		 where 1=1
+		<if test="condition != null and condition.startInput != null">
+				and	date_format(suf.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]> date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+				and date_format(suf.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]> date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+		</if>	
+		<if test="condition != null and condition.sysUserId != null">
+			and su.sys_user_id = #{condition.sysUserId}
+		</if>
+		<if test="condition != null and condition.freeTrialState != null">
+			and suf.free_trial_state = #{condition.freeTrialState} 
+		</if>
+		order by suf.create_time desc
+		) ss
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+	</select>
+	
+	<select id="queryFreeTriaById" parameterType="java.lang.Integer" resultType="com.dzd.phonebook.util.FreeTria">
+		select id,name,content from sms_free_trial 
+		where free_trial_type = #{id} and state = 0
+	</select>
+	
+	<select id="queryFreeTriaByContent" parameterType="java.lang.String" resultType="com.dzd.phonebook.util.FreeTria">
+		select id,name,content from sms_free_trial 
+		where content = #{content} and state = 0
+	</select>
+	
+	
+	<!-- 根据用户id查询模板 -->
+	<select id="queryFreeTriaBySmsUserId" parameterType="java.lang.Integer" resultType="com.dzd.phonebook.util.FreeTria" >
+		SELECT name,content
+		FROM sms_user_free_trial
+		WHERE free_trial_state=1 and sms_user_id = #{userId}
+	</select>
+	
+	
+	<select id="sysQueryUserFreeTriaByPage" parameterType="com.dzd.phonebook.util.DzdPageParam" resultType="com.dzd.phonebook.util.UserFreeTria">
+		select * from (select 
+			suf.id,
+			suf.name,
+			suf.content,
+			sagt.name typeName,
+			su.`name` smsUserName,
+			su.email  email,
+			suf.free_trial_state freeTrialState,
+			suf.create_time createTime,
+			suf.update_time updateTime,
+			suf.audit_time auditTime,
+			(select nickName from sys_user where id=su.team_id) temaName
+		 from sms_user_free_trial suf
+		 LEFT JOIN sms_user su on su.id=suf.sms_user_id
+		 LEFT JOIN sms_aisle_group_type sagt on sagt.id = suf.free_trial_type
+		 where 1=1
+		<if test="condition != null and condition.startInput != null">
+				and	date_format(suf.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]> date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+				and date_format(suf.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]> date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+		</if>	
+		<if test="condition != null and condition.freeTrialState != null">
+			and suf.free_trial_state = #{condition.freeTrialState} 
+		</if>
+		<if test="condition != null and condition.smsUser != null">
+			and su.email like '%${condition.smsUser}%'
+		</if>
+		<if test="condition != null and condition.smsUserVal != null">
+			and su.bId in (${condition.smsUserVal})
+		</if>
+		order by suf.create_time desc
+		) ss
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+	</select>
+	
+	
+	<select id="sysQuerySignatureByPage" parameterType="com.dzd.phonebook.util.DzdPageParam" resultType="com.dzd.phonebook.util.UserFreeTria">
+		select * from (select 
+			suf.id,
+			suf.signature name,
+			suf.content,
+			su.`name` smsUserName,
+			su.email  email,
+			suf.free_trial_state freeTrialState,
+			suf.create_time createTime,
+			suf.update_time updateTime,
+			suf.audit_time auditTime,
+			(select nickName from sys_user where id=su.team_id) temaName
+		 from sms_user_signature suf
+		 LEFT JOIN sms_user su on su.id=suf.sms_user_id
+		 where 1=1
+		<if test="condition != null and condition.startInput != null">
+				and	date_format(suf.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]> date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+				and date_format(suf.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]> date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+		</if>	
+		<if test="condition != null and condition.freeTrialState != null">
+			and suf.free_trial_state = #{condition.freeTrialState} 
+		</if>
+		<if test="condition != null and condition.smsUser != null">
+			and su.email like '%${condition.smsUser}%'
+		</if>
+		<if test="condition != null and condition.smsUserVal != null">
+			and su.bId in (${condition.smsUserVal})
+		</if>
+		order by suf.create_time desc
+		) ss
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+	</select>	
+	
+	<insert id="saveUserFreeTria" parameterType="Object">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+			keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into
+		sms_user_free_trial(id,free_trial_type,content,name,sms_user_id,create_time,free_trial_state)
+		values(#{id},#{freeTrialType},#{content},#{name},#{smsUserId},now(),#{freeTrialState})
+	</insert>
+
+	<select id="queryUserFreeTriaById" parameterType="java.lang.Integer" resultType="com.dzd.phonebook.util.UserFreeTria">
+		select 
+			suf.id,
+			suf.name,
+			suf.content,
+			suf.free_trial_type freeTrialType
+		 from sms_user_free_trial suf
+		 where suf.id=#{id}
+	</select>
+	
+	
+	<update id="updateUserFreeTria" parameterType="com.dzd.phonebook.util.UserFreeTria">
+		update sms_user_free_trial 
+			set name =#{name},content = #{content},free_trial_type=#{freeTrialType},
+			update_time = now()
+		where id=#{id}
+	</update>
+	
+	<delete id="deleteUserFreeTriaById" parameterType="java.lang.Integer">
+	delete from sms_user_free_trial where id=#{id}
+	</delete>
+	
+	<update id="auditUserFreeTriaById" parameterType="com.dzd.phonebook.util.UserFreeTria">
+		update sms_user_free_trial 
+			set audit_id =#{auditId},
+			free_trial_state = #{freeTrialState},
+			audit_time = now()
+		where id=#{id}
+	</update>
+	
+	
+	<update id="updateSysSignatureaById" parameterType="com.dzd.phonebook.util.UserFreeTria">
+		update sms_user_signature 
+			set audit_id =#{auditId},
+			free_trial_state = #{freeTrialState},
+			audit_time = now()
+		where id=#{id}
+	</update>
+	
+	
+	<select id="queryCountUserFreeTria" parameterType="com.dzd.phonebook.util.UserFreeTria" resultType="java.lang.Integer">
+		select count(1) from sms_user_free_trial where sms_user_id = #{smsUserId} and content = #{content}
+	</select>
+
+	<!-- 修改记录，只修改只不为空的字段 -->
+	<update id="updateBySelective" parameterType="Object">
+		update sms_user_free_trial 
+		set
+		<trim suffixOverrides=",">
+			<if test="name != null  and name != '' ">
+				name=#{name},
+			</if>
+			<if test="content != null  and content != '' ">
+				content=#{content},
+			</if>
+			<if test="freeTrialState != null">
+				free_trial_state=#{freeTrialState},
+			</if>
+			update_time = now()
+		</trim>
+		where id=#{id}
+	</update>
+	
+	
+	<insert id="sysSaveUserSignature" parameterType="Object">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+			keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into
+		sms_user_signature(id,content,signature,sms_user_id,create_time,free_trial_state)
+		values(#{id},#{content},#{name},#{smsUserId},now(),#{freeTrialState})
+	</insert>
+	
+	
+	<select id="sysQueryFreeTrialByPage" parameterType="com.dzd.phonebook.util.DzdPageParam" resultType="com.dzd.phonebook.util.UserFreeTria">
+		select * from (select 
+			suf.id,
+			suf.name,
+			suf.content,
+			sagt.name typeName,
+			suf.state freeTrialState,
+			suf.create_time createTime,
+			suf.update_time updateTime
+		 from sms_free_trial suf
+		 LEFT JOIN sms_aisle_group_type sagt on sagt.id = suf.free_trial_type
+		 where 1=1
+		<if test="condition != null and condition.startInput != null">
+				and	date_format(suf.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]> date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+				and date_format(suf.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]> date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+		</if>	
+		<if test="condition != null and condition.freeTrialState != null">
+			and suf.state = #{condition.freeTrialState} 
+		</if>
+		order by suf.create_time desc
+		) ss
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+	</select>
+	
+	
+	<insert id="sysSaveUserFreeTria" parameterType="Object">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+			keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into
+		sms_user_free_trial(id,free_trial_type,content,name,sms_user_id,create_time,free_trial_state)
+		values(#{id},#{freeTrialType},#{content},#{name},#{smsUserId},now(),#{freeTrialState})
+	</insert>
+	
+	
+	<insert id="sysAddFreeTrial" parameterType="Object">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+			keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into
+		sms_free_trial(id,free_trial_type,content,name,create_time,state)
+		values(#{id},#{freeTrialType},#{content},#{name},now(),#{freeTrialState})
+	</insert>
+	
+	
+	
+	<update id="updateFreeTriaById" parameterType="com.dzd.phonebook.util.UserFreeTria">
+		update sms_free_trial 
+		set	state = #{freeTrialState},
+			update_time = now()
+		where id=#{id}
+	</update>
+	
+	<select id="queryCountUserSignature" parameterType="com.dzd.phonebook.util.UserFreeTria" resultType="java.lang.Integer">
+		select count(1) from sms_user_signature where sms_user_id = #{smsUserId} and signature = #{content}
+	</select>
+	
+</mapper>   

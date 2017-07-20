@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<decorators defaultdir="/WEB-INF/view/layout/">
+	<excludes>
+		<pattern>/static/*</pattern>
+		<pattern>*loginview*</pattern>
+		<pattern>*welcome*</pattern>
+	</excludes> 
+	
+	
+</decorators>

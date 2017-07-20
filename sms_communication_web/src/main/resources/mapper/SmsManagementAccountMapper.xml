@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsManageMentAccountDao">
+    <!--账户管理列表-->
+    <select id="querySmsUserManageMentListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+            resultType="com.dzd.phonebook.util.SmsUser">
+        select * from(
+        select id,bid,email,name,contact,phone,createTime,
+        REPLACE(signature,'】','') signature,
+        userLevel,
+        aisleGroup,
+        groupTypeId,
+        roleName ,
+        roleId,
+        nickName,networkChargingState,sysUserId from(select * from (select
+        su.id,
+        su.email,
+        su.name,
+        su.contact,
+        su.phone,
+        su.user_level userLevel,
+        su.create_time createTime,
+        su.sys_user_id sysUserId,
+        su.network_charging_state networkChargingState,
+        REPLACE(su.signature,'【','') signature1,
+        su.aisle_group_id groupTypeId,
+        su.bId bid,
+        (select signature from sms_aisle_group where id=su.aisle_group_id) signature2,
+        (select CONCAT_WS(',',signature1,signature2)) signature,
+        (select name from sms_aisle_group where id = su.aisle_group_id) aisleGroup,
+        (select email from sys_user where id = su.bId) nickName
+        from sms_user su where su.check_state!=0)ss
+        left join
+        (select b.roleName,a.objId,b.id roleId from sys_role_rel a inner join sys_role b on a.roleId=b.id
+        right join sms_user c on a.objId=c.sys_user_id and a.relType!=2) tb on ss.sysUserId=tb.objId)cc GROUP BY id
+        having 1=1
+        <if test="condition != null and condition.email != null">
+            and email like '%${condition.email}%'
+        </if>
+        <if test="condition != null and condition.name != null">
+            and name like '%${condition.name}%'
+        </if>
+        <if test="condition != null and condition.contact != null">
+            and contact like '%${condition.contact}%'
+        </if>
+        <if test="condition != null and condition.phone != null">
+            and phone like '%${condition.phone}%'
+        </if>
+        <if test="condition != null and condition.aisleType != null">
+            and groupTypeId = ${condition.aisleType}
+        </if>
+        <if test="condition != null and condition.networkChargingState != null">
+            and networkChargingState = ${condition.networkChargingState}
+        </if>
+        <if test="condition != null and condition.userType != null">
+            and roleId=${condition.userType}
+        </if>
+        <if test="condition != null and condition.nickName != null">
+            and nickName = '${condition.nickName}'
+        </if>
+        <!--根据选择的数据导出-->
+        <if test="condition != null and condition.ids.size > 0">
+            and id in
+            <foreach collection="condition.ids" item="id"
+                     index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="condition != null and condition.smsUserVal !=null  and condition.smsUserVal.size >0 ">
+            and sysUserId in
+            <foreach collection="condition.smsUserVal" item="id"
+                     index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+            /* and bId in(${condition.smsUserVal})*/
+        </if>
+        ) tab
+        <if test="condition != null and condition.sortVal != null">
+            ${condition.sortVal}
+        </if>
+    </select>
+
+    <!--根据账户id查询账户信息-->
+    <select id="querySmsManageMentUser" parameterType="java.lang.Integer" resultType="com.dzd.phonebook.util.SmsUser">
+		select id,email,name,contact,phone,signature,aisleGroupId,groupTypeId,roleId roleName,
+		userEmail,
+		telphone,
+		address,
+		qq,
+		networkChargingState,
+		smsReplyState,
+		reportUrl,
+		replyUrl,
+		firmIp,
+		signatureType,
+		bid,
+		sysUserId
+		from(select * from (select
+		su.id,
+		su.email,
+		su.name,
+		su.contact,
+		su.phone,
+		su.sys_user_id sysUserId,
+		su.network_charging_state networdChargingState,
+		su.user_email userEmail,
+		su.telphone,
+		su.address,
+		su.qq,
+		su.network_charging_state networkChargingState,
+		su.sms_reply_state smsReplyState,
+		su.report_url reportUrl,
+		su.reply_url replyUrl,
+		su.firm_ip firmIp,
+		su.signature_type signatureType,
+		su.signature signature,
+		su.aisle_group_id aisleGroupId,
+		su.bid,
+		su.group_type_id groupTypeId,
+		(select pwd from sys_user where id=su.sys_user_id) pwd
+		from sms_user su where su.id=#{id})ss
+		left join
+		(select  roleId,a.objId from sys_role_rel a
+		right join sms_user c on a.objId=c.sys_user_id and a.relType!=2) tb on ss.sysUserId=tb.objId )cc GROUP BY id;
+	</select>
+
+    <!--删除账户-->
+    <delete id="deleteByIds" parameterType="java.util.List">
+        delete from sms_user where id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 插入账户信息数据 -->
+    <insert id="saveSmsUserManagement" parameterType="com.dzd.phonebook.util.SmsUser">
+        <selectKey resultType="java.lang.Integer" order="AFTER"
+                   keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into
+        sms_user(id,name,email,sys_user_id,create_time,state,bId,describes,`key`,report_url,reply_url,
+        http_protocol,cmpp_protocol,joinup_coding,firm_name,firm_pwd,joinuo_max,firm_ip,default_agid,team_id,group_type_id,aisle_group_id,phone,user_reg_type,user_email,qq,address,telphone,signature_type,sms_reply_state,network_charging_state,signature,contact,check_state,user_level)
+        values(#{id},#{name},#{email},#{sysUserId},now(),#{state},#{bid},#{describes},#{key},#{reportUrl},#{replyUrl},
+        #{httpProtocol},#{cmppProtocol},#{joinupCoding},#{firmName},#{firmPwd},#{joinuoMax},#{firmIp},#{defaultAgid},#{teamId},#{groupTypeId},#{aisleGroupId},#{phone},0,#{userEmail},#{qq},#{address},#{telphone},#{signatureType},#{smsReplyState},#{networkChargingState},#{signature},#{contact},#{checkState},#{userLevel})
+    </insert>
+</mapper>

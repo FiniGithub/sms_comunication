@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsUserSignatureDao">
+	<resultMap id="SignatureMapper" type="com.dzd.phonebook.entity.SmsUserSignature">
+		<result column="id" property="id" />
+		<result column="signature" property="signature" />
+		<result column="content" property="content" />
+		<result column="free_trial_state" property="freeTrialState" />
+		<result column="sms_user_id" property="smsUserId" />
+		<result column="audit_time" property="auditTime" />
+		<result column="audit_id" property="auditId" />
+		<result column="create_time" property="createTime" />
+		<result column="update_time" property="updateTime" />
+	</resultMap>
+
+	<sql id="BaseColumnSQL">
+		id,signature,content,free_trial_state,sms_user_id,
+		audit_time,audit_id,create_time,update_time
+	</sql>
+
+
+	<!-- 查询可使用的签名 -->
+	<select id="querySignatureList" resultMap="SignatureMapper">
+		SELECT
+		<include refid="BaseColumnSQL" />
+		FROM sms_user_signature
+		WHERE sms_user_id = #{uid} AND free_trial_state= 1
+		AND deleted =0
+	</select>
+	
+	<select id="querySignById" resultMap="SignatureMapper">
+		SELECT 
+		<include refid="BaseColumnSQL" />
+		FROM sms_user_signature
+		WHERE id = #{id} and deleted =0
+	</select>
+
+	<!-- 查询签名并分页 -->
+	<select id="querySignByListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultMap="SignatureMapper">
+		select
+		<include refid="BaseColumnSQL" />
+		from sms_user_signature s
+		where 1=1
+		<if test="condition != null and condition.sysUserId != null">
+			and s.sms_user_id = #{condition.sysUserId}
+		</if>
+		<if test="condition != null and condition.freeTrialState != null">
+			and s.free_trial_state = #{condition.freeTrialState}
+		</if>
+		and deleted =0
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+	</select>
+
+	<!-- 修改记录，只修改只不为空的字段 -->
+	<update id="updateBySelective" parameterType="Object">
+		update sms_user_signature
+		set
+		<trim suffixOverrides=",">
+			<if test="signature != null  and signature != '' ">
+				signature=#{signature},
+			</if>
+			<if test="freeTrialState != null  and freeTrialState != '' ">
+				free_trial_state=#{freeTrialState},
+			</if>
+			<if test="auditTime != null  and auditTime != '' ">
+				audit_time=#{auditTime},
+			</if>
+			<if test="auditId != null  and auditId != '' ">
+				audit_id=#{auditId},
+			</if>
+			<if test="deleted != null  and deleted != '' ">
+				deleted=#{deleted},
+			</if>
+			update_time = now()
+		</trim>
+		where id=#{id}
+	</update>
+
+	<!-- 删除记录 -->
+	<delete id="delete" parameterType="Object">
+		delete from sms_user_signature
+		where id = #{id}
+	</delete>
+
+	<!-- 新增 -->
+	<insert id="add" parameterType="Object">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+			keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO
+		sms_user_signature(signature,content,free_trial_state,sms_user_id,create_time)
+		VALUES(#{signature},#{content},#{freeTrialState},#{smsUserId},now())
+	</insert>
+</mapper>

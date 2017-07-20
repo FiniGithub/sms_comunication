@@ -1,0 +1,1532 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsUserDao">
+	<!-- 增加屏蔽词记录 -->
+	<insert id="insertShieldingWord" parameterType="java.lang.String">
+		INSERT INTO
+		sms_word_shielding(word,create_time,update_time)
+		VALUES
+		(#{word},NOW(),NOW());
+	</insert>
+	
+	<!-- 根据入参模糊删除屏蔽词记录 -->
+	<delete id="deleteShieldingWordFuzzy" parameterType="java.lang.String">
+		DELETE
+		FROM sms_word_shielding
+		WHERE word LIKE CONCAT('%',#{word},'%')
+	</delete>	
+	
+	<!-- 根据入参精确删除屏蔽词记录 -->
+	<delete id="deleteShieldingWordPrecise" parameterType="java.lang.String">
+		DELETE
+		FROM sms_word_shielding
+		WHERE word = #{word}
+	</delete>
+	
+	<!-- 根据入参模糊查询屏蔽词记录 -->
+	<select id="queryShieldingWordFuzzy" parameterType="java.lang.String"
+	resultType="com.dzd.phonebook.util.SmsShieldWord">
+	SELECT word wordName
+	FROM sms_word_shielding 
+	WHERE word LIKE CONCAT('%',#{word},'%')
+	</select>
+	
+	<!-- 根据入参精确查询屏蔽词记录 -->
+	<select id="queryShieldingWordPrecise" parameterType="java.lang.String"
+	resultType="com.dzd.phonebook.util.SmsShieldWord">
+	SELECT word wordName
+	FROM sms_word_shielding 
+	WHERE word = #{word}
+	</select>
+
+	<!-- 根据id修改sms_send_task标准content内容 -->
+	<update id="updateSendTaskContent" parameterType="com.dzd.phonebook.util.SmsSendTask">
+		UPDATE
+		sms_send_task
+		SET content = #{content}
+		WHERE id = #{id}
+	</update>
+
+	<!-- 根据id查询sms_send_taskcontent内容 -->
+	<select id="querySendTaskContentById" parameterType="java.lang.String"
+		resultType="com.dzd.phonebook.util.SmsSendTask">
+		SELECT
+		id
+		FROM sms_send_task
+		WHERE id = #{id}
+	</select>
+	
+	<!-- 查询sms_send_task表中相关字段数据并映射到实体bean中 -->
+	<select id="querySmsSendTask" resultType="com.dzd.phonebook.util.SmsSendTask">
+		SELECT
+		id id,
+		send_time sendTime,
+		content content,
+		sms_user_id smsUserId,
+		state state,
+		create_time createTime,
+		timing_time timingTime,
+		send_num sendNum,
+		billing_num billingNum,
+		sms_aisle_group_id aisleGroupId,
+		send_resend_state sendResendState
+		FROM
+		sms_send_task
+	</select>
+
+	<!-- 查询sms_send_task_phone表中相关字段数据并映射到实体bean中 -->
+	<select id="querySmsSendTaskPhone" resultType="com.dzd.phonebook.util.SmsSendTaskPhone">
+		SELECT
+		phone phone,
+		state state,
+		region region,
+		supplier supplier,
+		billing_num billingNum,
+		push_state pushState,
+		aid aid,
+		sms_send_task_id smsSendTaskId
+		FROM
+		sms_send_task_phone
+	</select>
+
+	<!-- 查询短信平台统计信息并映射到实体bean中 -->
+	<select id="querySmsAgentStatistics" resultType="com.dzd.phonebook.util.SmsUser">
+		SELECT
+		sms_user_name `name`,
+		sms_user_email email,
+		sms_aisle_name smsAisleName,
+		sms_aisle_type_id smsAisleTypeId,
+		send_num sendNum,
+		billing_num
+		billingNum,
+		succeed_num_us succeedNumUs,
+		failure_num_us failureNumUs,
+		unknown_num_us unknownNumUs,
+		succeed_num_ms succeedNumMs,
+		failure_num_ms failureNumMs,
+		unknown_num_ms unknownNumMs,
+		succeed_num_ts succeedNumTs,
+		failure_num_ts failureNumTs,
+		unknown_num_ts unknownNumTs
+		FROM
+		sms_agent_statistics
+	</select>
+
+	<select id="querySmsUserListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="com.dzd.phonebook.util.SmsUser">
+		select * from (select
+		su.id,
+		su.name,
+		su.email,
+		su.state,
+		(select name from
+		sms_aisle_group where id = su.aisle_group_id) aisleGroup,
+		sub.surplus_num surplusNum,
+		gt.`name` aisleGroupType,
+		(select count(1)
+		FROM sms_user_free_trial ft where ft.sms_user_id = su.id)
+		blankNum,
+		(select count(1) FROM sms_user_signature sus where sus.sms_user_id =
+		su.id)
+		signatureNum,
+		<!-- sub.money, sub.award_money awardMoney, su.contact, su.phone, su.`user_level` 
+			userLevel, sub.free_amount freeAmount, su.describes, -->
+		(select nickName from sys_user where id = su.bId) nickName,
+		(select
+		nickName from sys_user where id = su.team_id) teamName,
+		su.create_time
+		createTime
+		from sms_user su
+		LEFT JOIN sms_user_blank sub on su.id =
+		sub.user_id
+		LEFT JOIN sms_aisle_group_type gt on gt.id =
+		su.group_type_id
+		where 1=1
+		<if test="condition != null and condition.startInput != null">
+			and date_format(su.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]>
+			date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d
+			%H:%i')
+			and date_format(su.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]>
+			date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+		</if>
+		<if test="condition != null and condition.state != null">
+			and su.state = ${condition.state}
+		</if>
+		<if test="condition != null and condition.teamId != null">
+			and su.team_id = ${condition.teamId}
+		</if>
+		<if test="condition != null and condition.email != null">
+			and su.email like '%${condition.email}%'
+		</if>
+		<if test="condition != null and condition.smsUserVal != null">
+			and su.bId in (${condition.smsUserVal})
+		</if>
+		) ss
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+	</select>
+
+	<select id="rechargeRecordListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="com.dzd.phonebook.util.SmsRechargeUser">
+		SELECT * FROM (SELECT
+		a.order_no orderNo,
+		a.recharge_money
+		rechargeMoney,
+		a.recharge_num rechargeNum,
+		a.description description,
+		a.create_time createTime,
+		a.update_time updateTime,
+		a.operation
+		operation,
+		a.state state,
+		a.type type,
+		b.`name` name,
+		b.email email,
+		b.team_id teamId,
+		c.nickName teamName
+		FROM
+		sms_recharge_user a
+		LEFT JOIN
+		sms_user b ON a.sms_user_id=b.id
+		LEFT JOIN sys_user c ON b.team_id=c.id
+		where 1=1
+		<if
+			test="condition != null and condition.userId != null and condition.admin==null">
+			and (b.id=${condition.userId} or b.team_id=${condition.userId})
+		</if>
+		<if test="condition != null and condition.startInput != null">
+			and date_format(a.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]>
+			date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d
+			%H:%i')
+			and date_format(a.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]>
+			date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+		</if>
+		<if test="condition != null and condition.teamId != null">
+			and b.team_id = ${condition.teamId}
+		</if>
+		<if test="condition != null and condition.email != null">
+			and b.email like '%${condition.email}%'
+		</if>
+		) aa
+		${condition.sortVal}
+	</select>
+
+	<select id="querySmsStatistical" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="java.lang.Integer">
+		select
+		sum(sub.surplus_num) surplusNum
+		from sms_user su
+		LEFT JOIN
+		sms_user_blank sub on su.id = sub.user_id
+		LEFT JOIN
+		sms_aisle_group_type gt on gt.id = su.group_type_id
+		where 1=1
+		<if test="condition != null and condition.startInput != null">
+			and date_format(su.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]>
+			date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d
+			%H:%i')
+			and date_format(su.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]>
+			date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+		</if>
+		<if test="condition != null and condition.state != null">
+			and su.state = ${condition.state}
+		</if>
+		<if test="condition != null and condition.teamId != null">
+			and su.team_id = ${condition.teamId}
+		</if>
+		<if test="condition != null and condition.email != null">
+			and su.email like '%${condition.email}%'
+		</if>
+		<if test="condition != null and condition.smsUserVal != null">
+			and su.bId in (${condition.smsUserVal})
+		</if>
+	</select>
+
+	<!-- 关于充值请调用这个 -->
+	<insert id="saveUserMoneyRunning" parameterType="Object">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+			keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into
+		sms_user_money_running(id,uid,type,sms_user_id,money,create_time,comment,before_num,after_num,operate_num)
+		VALUES
+		(#{id},#{uid},#{smsUserid},#{money},now(),#{comment},#{beforeNum},#{afterNum},operater_num);
+	</insert>
+
+
+	<!-- 插入代理钱包记录 -->
+	<insert id="addSmsUserBlank" parameterType="Object">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+			keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into
+		sms_user_blank(id,award_money,money,free_amount,create_time,user_id)
+		values(#{id},#{awardMoney},#{money},#{freeAmount},now(),#{userId})
+	</insert>
+
+	<!-- 插入代理记录 -->
+	<insert id="saveSmsUser" parameterType="com.dzd.phonebook.util.SmsUser">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+			keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into
+		sms_user(id,name,email,sys_user_id,create_time,state,bId,describes,`key`,report_url,reply_url,
+		http_protocol,cmpp_protocol,joinup_coding,firm_name,firm_pwd,joinuo_max,firm_ip,default_agid,team_id,group_type_id,aisle_group_id,phone,user_reg_type)
+		values(#{id},#{name},#{email},#{sysUserId},now(),#{state},#{bid},#{describes},#{key},#{reportUrl},#{replyUrl},
+		#{httpProtocol},#{cmppProtocol},#{joinupCoding},#{firmName},#{firmPwd},#{joinuoMax},#{firmIp},#{defaultAgid},#{teamId},#{groupTypeId},#{aisleGroupId},#{phone},0)
+	</insert>
+
+
+	<select id="queryById" parameterType="java.lang.Integer"
+		resultType="com.dzd.phonebook.util.SmsUser">
+		select
+		su.id,
+		su.name,
+		su.email,
+		su.bId bid,
+		(select usr.nickName from
+		sys_user usr where su.bId = usr.id) nickName,
+		su.sys_user_id sysUserId,
+		sub.id smsUserBlankId,
+		su.state,
+		<!-- sub.money, -->
+		<!-- sub.award_money awardMoney, -->
+		su.phone,
+		<!-- su.contact, -->
+		<!-- su.user_level userLevel, -->
+		su.describes,
+		<!-- su.signature, -->
+		<!-- su.`user_level` userLevel, -->
+		su.report_url reportUrl,
+		su.reply_url replyUrl,
+		su.signature_check
+		signatureCheck,
+		http_protocol httpProtocol,
+		cmpp_protocol cmppProtocol,
+		joinup_coding joinupCoding,
+		firm_name firmName,
+		firm_pwd firmPwd,
+		joinuo_max joinuoMax,
+		firm_ip firmIp,
+		default_agid defaultAgid,
+		group_type_id groupTypeId,
+		su.aisle_group_id aisleGroupId
+		from sms_user
+		su
+		LEFT JOIN sms_user_blank sub
+		on sub.user_id = su.id
+		WHERE su.id =
+		#{id}
+	</select>
+
+	<update id="updateSmsUser" parameterType="com.dzd.phonebook.util.SmsUser">
+		update sms_user
+		set update_time=now(),
+		<trim suffixOverrides=",">
+			<if test="createTime!=null">
+				create_time = now(),
+			</if>
+			<if test="name!=null">
+				name = #{name},
+			</if>
+			<if test="key!=null">
+				`key` = #{key},
+			</if>
+			<if test="email!=null">
+				email=#{email},
+			</if>
+			<if test="state!=null">
+				state = #{state},
+			</if>
+			<if test="describes!=null">
+				describes = #{describes},
+			</if>
+			<if test="bid!=null">
+				bId = #{bid},
+			</if>
+			<if test="userLevel!=null">
+				user_level = #{userLevel},
+			</if>
+			<if test="reportUrl!=null">
+				report_url = #{reportUrl},
+			</if>
+			<if test="replyUrl!=null">
+				reply_url = #{replyUrl},
+			</if>
+			<if test="cmppProtocol!=null">
+				cmpp_protocol = #{cmppProtocol},
+			</if>
+
+			<if test="httpProtocol!=null">
+				http_protocol = #{httpProtocol},
+			</if>
+			<if test="joinupCoding!=null">
+				joinup_coding = #{joinupCoding},
+			</if>
+			<if test="firmName!=null">
+				firm_name = #{firmName},
+			</if>
+			<if test="firmPwd!=null">
+				firm_pwd = #{firmPwd},
+			</if>
+			<if test="joinuoMax!=null">
+				joinuo_max = #{joinuoMax},
+			</if>
+			<if test="firmIp!=null">
+				firm_ip = #{firmIp},
+			</if>
+			<if test="defaultAgid!=null">
+				default_agid = #{defaultAgid},
+			</if>
+			<if test="teamId!=null">
+				team_id=#{teamId},
+			</if>
+			<if test="groupTypeId!=null">
+				group_type_id=#{groupTypeId},
+			</if>
+			<if test="aisleGroupId!=null">
+				aisle_group_id = #{aisleGroupId},
+			</if>
+			<if test="phone!=null">
+				phone=#{phone},
+			</if>
+			<if test="userEmail!=null">
+				user_email= #{userEmail},
+			</if>
+			<if test="telphone!=null">
+				telphone= #{telphone},
+			</if>
+			<if test="address!=null">
+				address= #{address},
+			</if>
+			<if test="qq!=null">
+				qq= #{qq},
+			</if>
+			<if test="networkChargingState!=null">
+				network_charging_state= #{networkChargingState},
+			</if>
+			<if test="smsReplyState!=null">
+				sms_reply_state= #{smsReplyState},
+			</if>
+			<if test="signatureType!=null">
+				signature_type= #{signatureType},
+			</if>
+			<if test="signatureType==0 || signatureType ==1 ">
+				signature= #{signature},
+			</if>
+			<if test="contact!=null">
+				contact= #{contact},
+			</if>
+			<if test="checkState!=null">
+				check_state= #{checkState}
+			</if>
+		</trim>
+		where id= #{id}
+	</update>
+
+	<update id="updateSmsUserBlank" parameterType="com.dzd.phonebook.util.SmsUserBlank">
+		update
+		sms_user_blank set award_money = #{awardMoney},money=#{money} where
+		id=#{id}
+	</update>
+
+
+	<delete id="deleteSmsAislegroupHasUser" parameterType="java.lang.Integer">
+		delete
+		from sms_aisle_group_has_sms_user where sms_user_id =#{smsUid}
+	</delete>
+
+	<select id="queryUserHasGroup" parameterType="java.lang.Integer"
+		resultType="com.dzd.phonebook.util.SmsAisleGroupHasSmsUser">
+		select
+		s.id,
+		sag.tid aisleTypeId,
+		sagt.name typeName,
+		sag.name
+		sagName,
+		sag.lv,
+		sag.describes,
+		s.sms_aisle_group_id smsAisleGroupId,
+		s.sms_user_id smsUserId,
+		s.add_type addType,
+		sag.user_level userLevel,
+		sag.u_price guprice,
+		sag.m_price gmprice,
+		sag.t_price gtprice,
+		s.u_price
+		uprice,
+		s.m_price mprice,
+		s.t_price tprice
+		from
+		sms_aisle_group_has_sms_user s
+		LEFT JOIN sms_aisle_group sag on sag.id=
+		s.sms_aisle_group_id
+		LEFT JOIN sms_aisle_group_type sagt on sag.tid =
+		sagt.id
+		where
+		s.sms_user_id = #{smsUid}
+		ORDER BY addType,s.id
+	</select>
+
+	<select id="querySurplusNum" parameterType="java.lang.Integer"
+		resultType="java.lang.Integer">
+		select
+		s.surplus_num surplusNum
+		from sms_user_blank s where
+		s.user_id = #{smsUid}
+	</select>
+
+	<update id="updateSmsUserBlankMoney" parameterType="com.dzd.phonebook.util.SmsUser">
+		update sms_user_blank a 
+		<![CDATA[inner join (select user_id,surplus_num+#{surplusNum} surplusNum  from sms_user_blank b where user_id=#{id}) c ]]>
+		on a.user_id =c.user_id set a.surplus_num = c.surplusNum
+	</update>
+
+
+	<insert id="saveSmsUserMoneyRunning" parameterType="Object">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+			keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into
+		sms_user_money_running(id,uid,`type`,sms_user_id,before_num,after_num,operate_num,create_time,comment,orderId)
+		values(#{id},#{uid},#{type},#{smsUserId},#{beforeNum},#{afterNum},#{operateNum},#{createTime},#{comment},#{orderNo})
+	</insert>
+
+
+	<select id="querySmsUserKey" parameterType="java.lang.Integer"
+		resultType="java.lang.String">
+		select
+		s.key
+		from sms_user s where s.id = #{smsUserId}
+	</select>
+
+
+	<select id="querySmsUserStatisticalListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="com.dzd.phonebook.util.SmsUser">
+		select * from (
+		select
+		sas.sms_user_name name,
+		sas.sms_user_Id smsUserId,
+		sas.sms_user_email email,
+		IFNULL(SUM(sas.billing_num),0) billingNum,
+		IFNULL(SUM(sas.send_num),0) sendNum,
+		IFNULL(SUM(sas.actual_num),0)
+		actualNum,
+		IFNULL(SUM(sas.consume_money),0) consumeMoney,
+		IFNULL(SUM(sas.expect_money),0) expectMoney,
+		IFNULL(SUM(sas.succeed_num_us),0) succeedNumUs,
+		IFNULL(SUM(sas.failure_num_us),0) failureNumUs,
+		IFNULL(SUM(sas.unknown_num_us),0) unknownNumUs,
+		IFNULL(SUM(sas.succeed_num_ms),0) succeedNumMs,
+		IFNULL(SUM(sas.failure_num_ms),0) failureNumMs,
+		IFNULL(SUM(sas.unknown_num_ms),0) unknownNumMs,
+		IFNULL(SUM(sas.succeed_num_ts),0) succeedNumTs,
+		IFNULL(SUM(sas.failure_num_ts),0) failureNumTs,
+		IFNULL(SUM(sas.unknown_num_ts),0) unknownNumTs,
+		sas.sms_aisle_name
+		smsAisleName,
+		(select name from sms_aisle_group_type where id =
+		(select
+		sms_aisle_type_id from sms_aisle where id=sas.sms_aisle_type_id))
+		smsAisleTypeId,
+		(select `name` from sms_aisle_group_type where id=
+		(select sms_aisle_type_id from sms_aisle where
+		id=sas.sms_aisle_type_id)
+		) aisleGroupType,
+		(select nickName from
+		sys_user where id = su.bId) nickName,
+		sas.audit_date auditTime
+		from
+		sms_agent_statistics sas
+		LEFT JOIN sms_user su on su.id =
+		sas.sms_user_Id
+		where 1=1
+		<if test="condition != null and condition.startInput != null">
+			and date_format(sas.audit_date, '%Y-%m-%d') <![CDATA[ >= ]]>
+			date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d')
+			and
+			date_format(sas.audit_date, '%Y-%m-%d') <![CDATA[ <= ]]>
+			date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d')
+		</if>
+
+		<if test="condition != null and condition.email != null">
+			and sas.sms_user_email like '%${condition.email}%'
+		</if>
+		<choose>
+			<when test="condition != null and condition.logTime == 'history'">
+				and
+				(sas.unknown_num_ms+sas.unknown_num_ts+sas.unknown_num_us) = 0
+			</when>
+			<when test="condition != null and condition.logTime == 'today'">
+				and date(sas.audit_date) = curdate()
+			</when>
+		</choose>
+		<if test="condition != null and condition.email2 != null">
+			and sas.sms_user_email = #{condition.email2}
+		</if>
+		<if test="condition != null and condition.aisleName != null">
+			and sas.sms_aisle_name like '%${condition.aisleName}%'
+		</if>
+		<if test="condition != null and condition.uid != null">
+			and su.id = #{condition.uid} or su.bId = #{condition.sid}
+		</if>
+		<if test="condition != null and condition.smsUserVal != null">
+			and su.bId in (${condition.smsUserVal})
+		</if>
+		GROUP BY sas.sms_user_name,sas.sms_user_email,sas.sms_aisle_type_id
+		)
+		ss
+		where 1=1
+		<if test="condition != null and condition.nickName != null">
+			and ss.nickName = #{condition.nickName}
+		</if>
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+	</select>
+
+	<select id="fillSmsUserStatisticalListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="com.dzd.phonebook.util.SmsUser">
+		select a.email,
+		(select nickName from sys_user where id = a.bId)
+		nickName
+		from sms_user a
+		where a.email in
+		<foreach collection="condition" item="email" index="index"
+			open="(" close=")" separator=",">
+			#{email}
+		</foreach>
+	</select>
+
+	<select id="querySmsUserStatisticalZong" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="com.dzd.phonebook.util.SmsUser">
+		select
+		IFNULL(SUM(sas.send_num),0) sumSendNum,
+		IFNULL(SUM(sas.actual_num),0) sumActualNum,
+		IFNULL(SUM(sas.billing_num),0) sumBillingNum,
+		IFNULL(SUM(sas.succeed_num_us),0) sumSucceedNumUs,
+		IFNULL(SUM(sas.failure_num_us),0) sumFailureNumUs,
+		IFNULL(SUM(sas.unknown_num_us),0) sumUnknownNumUs,
+		IFNULL(SUM(sas.succeed_num_ms),0) sumSucceedNumMs,
+		IFNULL(SUM(sas.failure_num_ms),0) sumFailureNumMs,
+		IFNULL(SUM(sas.unknown_num_ms),0) sumUnknownNumMs,
+		IFNULL(SUM(sas.succeed_num_ts),0) sumSucceedNumTs,
+		IFNULL(SUM(sas.failure_num_ts),0) sumFailureNumTs,
+		IFNULL(SUM(sas.unknown_num_ts),0) sumUnknownNumTs
+		from
+		sms_agent_statistics sas
+		LEFT JOIN sms_user su on su.id =
+		sas.sms_user_Id
+		where 1=1
+		<if test="condition != null and condition.startInput != null">
+			and date_format(sas.audit_date, '%Y-%m-%d') <![CDATA[ >= ]]>
+			date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d')
+			and
+			date_format(sas.audit_date, '%Y-%m-%d') <![CDATA[ <= ]]>
+			date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d')
+		</if>
+
+		<if test="condition != null and condition.email != null">
+			and sas.sms_user_email like '%${condition.email}%'
+		</if>
+		<if test="condition != null and condition.aisleName != null">
+			and sas.sms_aisle_name like '%${condition.aisleName}%'
+		</if>
+		<if test="condition != null and condition.email2 != null">
+			and sas.sms_user_email = #{condition.email2}
+		</if>
+		<if test="condition != null and condition.smsUserVal != null">
+			and su.bId in (${condition.smsUserVal})
+		</if>
+	</select>
+
+	<select id="querySmsUserStatisticalByUid" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="java.lang.Long">
+		select
+		IFNULL(SUM(sas.billing_num),0) sumBillingNum
+		from
+		sms_agent_statistics sas
+		LEFT JOIN sms_user su on su.id =
+		sas.sms_user_Id
+		where 1=1 and sas.sms_user_id = #{smsUserId}
+		and
+		date_format(sas.audit_date, '%Y-%m-%d') = date_format(now(),
+		'%Y-%m-%d');
+
+	</select>
+
+
+	<select id="querySmsUserPuserBillListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="com.dzd.phonebook.util.SmsUserMoneyRunning">
+		select
+		ss.id,ss.email,ss.bid,ss.uaccount,ss.money,ss.operateNum,ss.beforeNum,ss.afterNum,ss.type,ss.`comment`,ss.createTime,ss.nickName
+		as bname
+		from
+		(select
+		sr.id,
+		su.email,
+		su.bid ,
+		sys.nickName uaccount,
+		sr.create_time createTime,
+		sro.money ,
+		sr.operate_num operateNum,
+		sr.before_num beforeNum ,
+		sr.after_num afterNum,
+		sr.type,
+		sr.`comment`,
+		(select email from sys_user where id = su.bId) nickName
+		from
+		sms_user_money_running sr
+		LEFT JOIN sys_user sys on sys.id = sr.uid
+		LEFT JOIN sms_user su on su.id = sr.sms_user_id
+		LEFT JOIN
+		sms_recharge_order sro on sro.orderNo = sr.orderId
+		where 1=1 and type
+		!=1 and type !=5
+		<if
+			test="condition!=null and condition.superAdmin!=1 and condition.roleId!=58">
+			and type !=8 and (( sr.sms_user_id = #{condition.smsUserId}) or
+			su.bId =
+			#{condition.sysUserId})
+		</if>
+		<if
+			test="condition!=null and condition.roleId!=null and (condition.roleId==58 or condition.roleId == 48) ">
+			and type !=2 and type !=3
+		</if>
+
+
+		<if test="condition != null and condition.startInput != null">
+			and date_format(sr.create_time, '%Y-%m-%d') <![CDATA[ >= ]]>
+			date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d')
+			and
+			date_format(sr.create_time, '%Y-%m-%d') <![CDATA[ <= ]]>
+			date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d')
+		</if>
+		<if test="condition != null and condition.startInput == null">
+			and sr.create_time >=date_sub(curdate(),interval 3 day)
+		</if>
+
+		<if test="condition != null and condition.email != null">
+			and su.email like '%${condition.email}%'
+		</if>
+		<if test="condition != null and condition.type != null">
+			and sr.type = #{condition.type}
+		</if>
+		<if test="condition != null and condition.smsUserVal != null">
+			and su.bId in (${condition.smsUserVal})
+		</if>
+		) ss
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+	</select>
+
+	<!-- 导出充值记录 -->
+	<select id="querySmsUserRechargeBillList" parameterType="Object"
+		resultType="com.dzd.phonebook.util.SmsUserMoneyRunning">
+		select
+		ss.id,ss.email,ss.bid,ss.uaccount,ss.money,ss.operateNum,ss.beforeNum,ss.afterNum,ss.type,ss.`comment`,ss.createTime,ss.nickName
+		as bname
+		from
+		(select
+		sr.id,
+		su.email,
+		su.bid ,
+		sys.nickName uaccount,
+		sr.create_time createTime,
+		sro.money ,
+		sr.operate_num operateNum,
+		sr.before_num beforeNum ,
+		sr.after_num afterNum,
+		sr.type,
+		sr.`comment`,
+		(select nickName from sys_user where id = su.bId) nickName
+		from
+		sms_user_money_running sr
+		LEFT JOIN sys_user sys on sys.id = sr.uid
+		LEFT JOIN sms_user su on su.id = sr.sms_user_id
+		LEFT JOIN
+		sms_recharge_order sro on sro.orderNo = sr.orderId
+		where 1=1 and type
+		!=1
+		<if test="superAdmin!=1">
+			and (( sr.sms_user_id = #{smsUserId}) or su.bId =
+			#{smsUserId})
+		</if>
+
+
+		<if test="startInput != null and startInput != ''">
+			and date_format(sr.create_time, '%Y-%m-%d') <![CDATA[ >= ]]>
+			date_format(#{startInput,jdbcType=VARCHAR},
+			'%Y-%m-%d')
+			and
+			date_format(sr.create_time, '%Y-%m-%d') <![CDATA[ <= ]]>
+			date_format(#{endInput,jdbcType=VARCHAR},
+			'%Y-%m-%d')
+		</if>
+		<if test="startInput == null">
+			and sr.create_time >=date_sub(curdate(),interval 4 day)
+		</if>
+
+		<if test="email != null">
+			and su.email like '%${email}%'
+		</if>
+		<if test="type != null">
+			and sr.type = #{type}
+		</if>
+		<if test="bid != null">
+			and su.bId in (${bid})
+		</if>
+		) ss
+		order by ss.createTime DESC
+	</select>
+
+
+	<!-- 消费记录 -->
+	<select id="querySmsUserPuserConsumeBillListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="com.dzd.phonebook.util.SmsUserMoneyRunning">
+		select
+		ss.id,ss.email,ss.bid,ss.uaccount,ss.money,ss.operateNum,ss.beforeNum,ss.afterNum,ss.type,ss.`comment`,ss.createTime,ss.nickName
+		as bname
+		from
+		(select
+		sr.id,
+		su.email,
+		su.bid ,
+		sys.nickName uaccount,
+		sr.create_time createTime,
+		sro.money ,
+		sr.operate_num operateNum,
+		sr.before_num beforeNum ,
+		sr.after_num afterNum,
+		sr.type,
+		sr.`comment`,
+		(select email from sys_user where id = su.bId) nickName
+		from
+		sms_user_money_running sr
+		LEFT JOIN sys_user sys on sys.id = sr.uid
+		LEFT JOIN sms_user su on su.id = sr.sms_user_id
+		LEFT JOIN
+		sms_recharge_order sro on sro.orderNo = sr.orderId
+		where 1=1 and type
+		=1
+		<if test="condition!=null and condition.superAdmin!=1">
+			and (( sr.sms_user_id = #{condition.smsUserId}) or su.bId
+			=
+			#{condition.smsUserId})
+		</if>
+
+
+		<if test="condition.startInput != null and condition.startInput != ''">
+			and date_format(sr.create_time, '%Y-%m-%d') <![CDATA[ >= ]]>
+			date_format(#{condition.startInput,jdbcType=VARCHAR},
+			'%Y-%m-%d')
+			and
+			date_format(sr.create_time, '%Y-%m-%d') <![CDATA[ <= ]]>
+			date_format(#{condition.endInput,jdbcType=VARCHAR},
+			'%Y-%m-%d')
+		</if>
+		<if test="condition.startInput == null">
+			and sr.create_time >=date_sub(curdate(),interval 4 day)
+		</if>
+
+		<if test="condition.email != null">
+			and su.email like '%${condition.email}%'
+		</if>
+		<if test="condition.type != null">
+			and sr.type = #{type}
+		</if>
+		<if test="condition.bid != null">
+			and su.bId in (${bid})
+		</if>
+		) ss
+		order by ss.createTime DESC
+	</select>
+
+
+	<select id="querySmsUserPuserBillZong" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="com.dzd.phonebook.util.SmsUserMoneyRunning">
+		select
+		IFNULL(topUpNumber,0) topUpNum,
+		IFNULL(consumeNumber,0)
+		consumeNum,
+		IFNULL(refundNumber,0) refundNum
+		from
+
+		(select
+		sum(case when
+		sr.type=0 then sr.operate_num else 0 end) topUpNumber,
+		sum(case when
+		sr.type=1 then sr.operate_num else 0 end) consumeNumber,
+		sum(case when
+		sr.type=2 then sr.operate_num else 0 end) refundNumber
+		from
+		sms_user_money_running sr,sms_user su
+		where
+		su.id = sr.sms_user_id
+		<if test="condition != null and condition.startInput != null">
+			and date_format(sr.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]>
+			date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d
+			%H:%i')
+			and date_format(sr.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]>
+			date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+		</if>
+		<if test="condition != null and condition.email != null">
+			and su.email like '%${condition.email}%'
+		</if>
+		<if test="condition != null and condition.type != null">
+			and sr.type = #{condition.type}
+		</if>
+		<if test="condition != null and condition.smsUserId != null">
+			and sr.sms_user_id = #{condition.smsUserId}
+		</if>
+		<if test="condition != null and condition.smsUserVal != null">
+			and su.bId in (${condition.smsUserVal})
+		</if>
+		) ss
+	</select>
+
+
+	<select id="stSmsUserPuserBillList" resultType="com.dzd.phonebook.util.SmsUser">
+		select * from (
+		select
+		t.sms_user_id id,
+		(select `name` from sms_aisle
+		where id = p.aid) as smsAisleName,
+		(select id from sms_aisle where id =
+		p.aid) as smsAisleTypeId,
+		su.name,
+		su.email,
+		date_format(t.audit_time,'%Y-%m-%d') auditTime,
+		count(*) as sendNum,
+		sum(p.billing_num) as billingNum,
+		sum(if(p.state=99 or
+		p.state=100,p.billing_num,0)) as actualNum,
+
+		sum(if(p.state=100 and
+		p.supplier=1,p.billing_num,0)) as succeedNumUs,
+        <![CDATA[sum(if(p.state>=2 and p.state<99 and p.supplier=1,p.billing_num,0)) as failureNumUs,]]>
+		sum(if(p.state=99 and p.supplier=1,p.billing_num,0)) as unknownNumUs,
+
+		sum(if(p.state=100 and p.supplier=0,p.billing_num,0)) as succeedNumMs,
+        <![CDATA[sum(if(p.state>=2 and p.state<99 and p.supplier=0,p.billing_num,0)) as failureNumMs,]]>
+		sum(if(p.state=99 and p.supplier=0,p.billing_num,0)) as unknownNumMs,
+
+		sum(if(p.state=100 and p.supplier=2,p.billing_num,0)) as succeedNumTs,
+        <![CDATA[sum(if(p.state>=2 and p.state<99 and p.supplier=2,p.billing_num,0)) as failureNumTs,]]>
+		sum(if(p.state=99 and p.supplier=2,p.billing_num,0)) as unknownNumTs
+
+		from sms_send_task_phone p
+		left join sms_send_task t on
+		p.sms_send_task_id=t.id
+		left join sms_user su on t.sms_user_id = su.id
+		where 1=1
+		and (t.audit_state =1 or t.audit_state =2)
+        <![CDATA[and	date_format(t.audit_time, '%Y-%m-%d %h:%i:%s') >= date_format(date_sub(curdate(),interval 1 day), '%Y-%m-%d 00:00:00')]]>
+
+		group by p.aid,t.sms_user_id, auditTime
+
+		) as t
+
+	</select>
+
+
+	<insert id="saeveStSmsUserPuserBill" parameterType="com.dzd.phonebook.util.SmsUser">
+		insert into sms_agent_statistics
+		(
+		<if test="name != null">
+			sms_user_name,
+		</if>
+		<if test="email != null">
+			sms_user_email,
+		</if>
+		<if test="billingNum != null">
+			billing_num,
+		</if>
+		<if test="sendNum != null">
+			send_num,
+		</if>
+		<if test="actualNum != null">
+			actual_num,
+		</if>
+		<if test="succeedNumUs != null">
+			succeed_num_us,
+		</if>
+		<if test="failureNumUs != null">
+			failure_num_us,
+		</if>
+		<if test="unknownNumUs != null">
+			unknown_num_us,
+		</if>
+		<if test="succeedNumMs != null">
+			succeed_num_ms,
+		</if>
+		<if test="failureNumMs != null">
+			failure_num_ms,
+		</if>
+		<if test="unknownNumMs != null">
+			unknown_num_ms,
+		</if>
+		<if test="succeedNumTs != null">
+			succeed_num_ts,
+		</if>
+		<if test="failureNumTs != null">
+			failure_num_ts,
+		</if>
+		<if test="unknownNumTs != null">
+			unknown_num_ts,
+		</if>
+		<if test="auditTime != null">
+			audit_date,
+		</if>
+		<if test="smsAisleName != null">
+			sms_aisle_name,
+		</if>
+		<if test="smsAisleTypeId != null">
+			sms_aisle_type_id,
+		</if>
+		<if test="id != null">
+			sms_user_id,
+		</if>
+		create_time
+		)
+		values(
+		<if test="name != null">
+			#{name},
+		</if>
+		<if test="email != null">
+			#{email},
+		</if>
+		<if test="billingNum != null">
+			#{billingNum},
+		</if>
+		<if test="sendNum != null">
+			#{sendNum},
+		</if>
+		<if test="actualNum != null">
+			#{actualNum},
+		</if>
+		<if test="succeedNumUs != null">
+			#{succeedNumUs},
+		</if>
+		<if test="failureNumUs != null">
+			#{failureNumUs},
+		</if>
+		<if test="unknownNumUs != null">
+			#{unknownNumUs},
+		</if>
+		<if test="succeedNumMs != null">
+			#{succeedNumMs},
+		</if>
+		<if test="failureNumMs != null">
+			#{failureNumMs},
+		</if>
+		<if test="unknownNumMs != null">
+			#{unknownNumMs},
+		</if>
+		<if test="succeedNumTs != null">
+			#{succeedNumTs},
+		</if>
+		<if test="failureNumTs != null">
+			#{failureNumTs},
+		</if>
+		<if test="unknownNumTs != null">
+			#{unknownNumTs},
+		</if>
+		<if test="auditTime != null">
+			#{auditTime},
+		</if>
+		<if test="smsAisleName != null">
+			#{smsAisleName},
+		</if>
+		<if test="smsAisleTypeId != null">
+			#{smsAisleTypeId},
+		</if>
+		<if test="id != null">
+			#{id},
+		</if>
+		date_sub(curdate(),interval 0 day)
+		)ON DUPLICATE KEY
+		UPDATE
+		<if test="name != null">
+			sms_user_name = #{name},
+		</if>
+		<if test="email != null">
+			sms_user_email = #{email},
+		</if>
+		<if test="succeedNumUs != null">
+			succeed_num_us = #{succeedNumUs},
+		</if>
+		<if test="failureNumUs != null">
+			failure_num_us = #{failureNumUs},
+		</if>
+		<if test="unknownNumUs != null">
+			unknown_num_us = #{unknownNumUs},
+		</if>
+		<if test="succeedNumMs != null">
+			succeed_num_ms = #{succeedNumMs},
+		</if>
+		<if test="failureNumMs != null">
+			failure_num_ms = #{failureNumMs},
+		</if>
+		<if test="unknownNumMs != null">
+			unknown_num_ms = #{unknownNumMs},
+		</if>
+		<if test="succeedNumTs != null">
+			succeed_num_ts = #{succeedNumTs},
+		</if>
+		<if test="failureNumTs != null">
+			failure_num_ts = #{failureNumTs},
+		</if>
+		<if test="unknownNumTs != null">
+			unknown_num_ts = #{unknownNumTs},
+		</if>
+		billing_num = #{billingNum},
+		send_num = #{sendNum},
+		actual_num =
+		#{actualNum}
+	</insert>
+
+
+	<select id="querySmsUserListTj" resultType="com.dzd.phonebook.util.SmsUser">
+		select id,name,email
+		from sms_user
+	</select>
+
+
+	<!-- 代理商查询统计 -->
+	<select id="querySmsUserDLPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="com.dzd.phonebook.util.SmsUser">
+		select
+		audit_date as auditTime,
+		SUM(send_num) as sendNum,
+		SUM(billing_num) as billingNum,
+		SUM(actual_num) as actualNum,
+		SUM(succeed_num_us) as succeedNumUs,
+		SUM(failure_num_us) as
+		failureNumUs,
+		SUM(unknown_num_us) as unknownNumUs,
+		SUM(succeed_num_ms)
+		as succeedNumMs,
+		SUM(failure_num_ms) as failureNumMs,
+		SUM(unknown_num_ms) as unknownNumMs,
+		SUM(succeed_num_ts) as
+		succeedNumTs,
+		SUM(failure_num_ts) as failureNumTs,
+		SUM(unknown_num_ts)
+		as unknownNumTs
+		from sms_agent_statistics
+		where 1=1
+		<if test="condition != null and condition.startInput != null">
+			and date_format(audit_date, '%Y-%m-%d') <![CDATA[ >= ]]>
+			date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d')
+			and
+			date_format(audit_date, '%Y-%m-%d') <![CDATA[ <= ]]>
+			date_format(#{condition.endInput,jdbcType=VARCHAR},
+			'%Y-%m-%d')
+		</if>
+		<if test="condition != null and condition.email2 != null">
+			and sms_user_email = #{condition.email2}
+		</if>
+		group by audit_date
+		order by auditTime desc
+	</select>
+
+
+	<select id="querySmsUserStatisticalPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="com.dzd.phonebook.util.SmsUser">
+		select * from (
+		select
+		sas.id as id,
+		sas.audit_date auditTime,
+		sas.sms_user_name name,
+		sas.sms_user_email email,
+		sas.billing_num
+		sendNum,
+		sas.consume_money consumeMoney,
+		sas.expect_money expectMoney,
+		sas.succeed_num_us succeedNumUs,
+		sas.failure_num_us failureNumUs,
+		sas.unknown_num_us unknownNumUs,
+		sas.succeed_num_ms succeedNumMs,
+		sas.failure_num_ms failureNumMs,
+		sas.unknown_num_ms unknownNumMs,
+		sas.succeed_num_ts succeedNumTs,
+		sas.failure_num_ts failureNumTs,
+		sas.unknown_num_ts unknownNumTs
+		from sms_agent_statistics sas
+		where 1=1
+		<if test="condition != null and condition.startInput != null">
+			and date_format(sas.audit_date, '%Y-%m-%d') <![CDATA[ >= ]]>
+			date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d')
+			and
+			date_format(sas.audit_date, '%Y-%m-%d') <![CDATA[ <= ]]>
+			date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d')
+		</if>
+		<if test="condition != null and condition.email2 != null">
+			and sas.sms_user_email = #{condition.email2}
+		</if>
+		) ss
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+	</select>
+
+	<select id="queryVipUserHasGroup" parameterType="java.lang.Integer"
+		resultType="com.dzd.phonebook.util.SmsAisleGroupHasSmsUser">
+		select
+		sag.tid aisleTypeId,
+		sagt.name typeName,
+		sag.name sagName,
+		<!-- sag.lv, -->
+		sag.describes,
+		sag.id smsAisleGroupId,
+		sag.user_level userLevel,
+		sag.u_price guprice,
+		sag.m_price gmprice,
+		sag.t_price gtprice
+		from
+		sms_aisle_group sag
+		LEFT JOIN sms_aisle_group_type sagt on sag.tid =
+		sagt.id
+		where
+        <![CDATA[ sag.user_level > 1
+	 		 and sag.user_level <= #{userLevel} ]]>
+	</select>
+	<select id="querySmsUserMoneyRunningStatistical" parameterType="Object"
+		resultType="com.dzd.phonebook.util.SmsUserMoneyRunning">
+		select
+		SUM(operate_num) as operateNum,
+		SUM(before_num) as
+		beforeNum,
+		SUM(after_num) as afterNum
+		from sms_user_money_running
+		where
+		sms_user_id = #{userId}
+	</select>
+
+
+	<select id="querySendListStatistical" parameterType="Object"
+		resultType="com.dzd.phonebook.util.SmsUser">
+		select sum(billing_num) as sendNum ,
+		sum(succeed_num_us) as
+		succeedNumUs,
+		sum(succeed_num_ms) as succeedNumMs,
+		sum(succeed_num_ts)
+		as succeedNumTs,
+		sum(failure_num_us) as failureNumUs,
+		sum(failure_num_ms) as failureNumMs,
+		sum(failure_num_ts) as
+		failureNumTs,
+		sum(unknown_num_us) as unknownNumUs,
+		sum(unknown_num_ms)
+		as unknownNumMs,
+		sum(unknown_num_ts) as unknownNumTs
+		from
+		sms_agent_statistics
+		where sms_user_email = #{email}
+	</select>
+
+	<select id="querySmsGroupById" parameterType="java.lang.Integer"
+		resultType="com.dzd.phonebook.util.SmsAisleGroup">
+		select id,name from sms_aisle_group where tid = #{gtype} and state=1 <!-- 
+			and type=0 -->
+	</select>
+
+	<select id="querySmsUserBySysUid" parameterType="java.lang.Integer"
+		resultType="com.dzd.phonebook.util.SmsUser">
+		select
+		su.id,
+		su.name,
+		su.email,
+		su.bId bid,
+		su.sys_user_id
+		sysUserId,
+		su.state,
+		su.phone,
+		su.contact,
+		su.describes,
+		su.report_url
+		reportUrl,
+		su.reply_url replyUrl,
+		su.signature_check signatureCheck,
+		http_protocol httpProtocol,
+		cmpp_protocol cmppProtocol,
+		joinup_coding
+		joinupCoding,
+		firm_name firmName,
+		firm_pwd firmPwd,
+		joinuo_max joinuoMax,
+		firm_ip firmIp,
+		default_agid defaultAgid,
+		group_type_id groupTypeId,
+		su.aisle_group_id aisleGroupId
+		from sms_user su
+		WHERE su.sys_user_id =
+		#{sysId}
+	</select>
+
+	<select id="queryCountNewSmsUser" resultType="java.lang.Integer">
+		select count(1) countNum from sms_user where
+		1 = 1 
+		<![CDATA[and  date_format(sms_user.create_time, '%Y-%m-%d %H:%i:%s') > date_format((select last_query_time from sms_user_query_log), '%Y-%m-%d %H:%i:%s')
+
+
+        ]]>
+	</select>
+
+	<select id="queryCountUserSmsNum" resultType="java.lang.Integer"
+		parameterType="Object">
+		select
+		sum(suk.surplus_num) countNum
+		from sms_user su,sms_user_blank suk
+		where suk.user_id = su.id
+		<if test="smsUserVal != null">
+			and su.bId in (${smsUserVal})
+		</if>
+	</select>
+
+	<select id="queryCountSmsAgentStatistics" resultType="com.dzd.phonebook.util.SmsUser"
+		parameterType="Object">
+		select
+		audit_date auditTime,
+		sum(send_num) sumSendNum,
+		sum(billing_num)
+		sumBillingNum,
+		sum(actual_num) sumActualNum,
+		sum(succeed_num_us)
+		sumSucceedNumUs,
+		sum(failure_num_us) sumFailureNumUs,
+		sum(unknown_num_us) sumUnknownNumUs,
+
+		sum(succeed_num_ms)
+		sumSucceedNumMs,
+		sum(failure_num_ms) sumFailureNumMs,
+		sum(unknown_num_ms) sumUnknownNumMs,
+
+		sum(succeed_num_Ts)
+		sumSucceedNumTs,
+		sum(failure_num_Ts) sumFailureNumTs,
+		sum(unknown_num_Ts) sumUnknownNumTs
+		from sms_agent_statistics
+		LEFT JOIN
+		sms_user su on su.id = sms_agent_statistics.sms_user_id
+		where 1=1
+        <![CDATA[and  date_format(sms_agent_statistics.audit_date, '%Y-%m-%d %H:%i:%s') >= date_format(date_sub(curdate(),interval 7 day), '%Y-%m-%d 00:00:00')]]>
+		<if test="smsUserVal != null">
+			and su.bId in (${smsUserVal})
+		</if>
+		GROUP BY audit_date
+	</select>
+
+
+	<insert id="addSmsUser" parameterType="com.dzd.phonebook.util.SmsUser">
+		<selectKey resultType="java.lang.Integer" order="AFTER"
+			keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into
+		sms_user(id,`name`,email,phone,`key`,sys_user_id,create_time)
+		values(#{id},#{name},#{email},#{phone},#{key},#{sysUserId},now())
+	</insert>
+
+	<!-- 修改 -->
+	<update id="updateSmsUserInfo" parameterType="Object">
+		UPDATE sms_user
+		SET
+		<trim suffixOverrides=",">
+			<if test="groupTypeId != null  and groupTypeId != '' ">
+				group_type_id=#{groupTypeId},
+			</if>
+			<if test="aisleGroupId != null  and aisleGroupId != '' ">
+				aisle_group_id=#{aisleGroupId},
+			</if>
+			update_time = now()
+		</trim>
+		where email = #{email}
+	</update>
+
+
+	<select id="queryCountTodaySmsNum" resultType="java.lang.Integer"
+		parameterType="Object">
+		select sum(sumr.operate_num) from sms_user_money_running sumr
+		LEFT JOIN
+		sms_user su on su.id =sumr.sms_user_id
+		where sumr.type =0
+		and  <![CDATA[date_format(sumr.create_time, '%Y-%m-%d') = date_format(now(), '%Y-%m-%d')]]>
+		<if test="smsUserVal != null">
+			and su.bId in (${smsUserVal})
+		</if>
+	</select>
+
+	<select id="queryLastSmsUserTime" resultType="java.util.Date">
+		select
+		last_query_time from sms_user_query_log
+	</select>
+
+	<update id="updateLastSmsUserTime" parameterType="Object">
+		update
+		sms_user_query_log set last_query_time =#{lastTime}
+	</update>
+
+	<!--修改用户状态 -->
+	<update id="updateUserState" parameterType="Object">
+		update sms_user set
+		state =#{state} where id=#{id}
+	</update>
+
+
+	<insert id="addLastSmsUserTime" parameterType="Object">
+		insert into
+		sms_user_query_log(last_query_time)
+		values(#{lastTime})
+	</insert>
+
+	<select id="pushManagePage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+		resultType="com.dzd.phonebook.entity.SmsUserMessage">
+		select * from
+		(select
+		sum.id,
+		sum.title,
+		sum.content,
+		sum.type,
+		sum.sms_user_email smsUserEmail,
+		sum.push_index pushIndex,
+		(select
+		nickName from sys_user where id = sum.sys_user_id) sysName,
+		(select
+		Group_concat(name) from sms_aisle_group_type where
+		find_in_set(id,sum.sms_user_type_id)) smsUserTypeId,
+		sum.created
+		from
+		sms_user_message sum
+		where 1=1
+		<if test="condition != null and condition.startInput != null">
+			and date_format(sum.created, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]>
+			date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d
+			%H:%i')
+			and date_format(sum.created, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]>
+			date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+		</if>
+		<if test="condition != null and condition.smsUserVal != null">
+			and sum.sys_user_id in (${condition.smsUserVal})
+		</if>
+		) ss
+		where 1=1
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+	</select>
+
+	<insert id="addPushManage" parameterType="com.dzd.phonebook.entity.SmsUserMessage">
+		insert into
+		sms_user_message(title,content,created,type,sms_user_email,push_index,sms_user_type_id,sys_user_id)
+		values(#{title},#{content},now(),${type},#{smsUserEmail},${pushIndex},#{smsUserTypeId},${sysUserId})
+	</insert>
+
+	<!-- 查询用户类型 -->
+	<select id="queryGroupTypeBySmsUserId" resultType="com.dzd.phonebook.util.SmsAisleGroupType">
+		SELECT
+		id,
+		'name',
+		create_time as createTime,
+		'describe'
+		FROM sms_aisle_group_type
+		WHERE id = #{groupId}
+	</select>
+
+	<!--查询业务员或者销售经理下面所有业务员（归属） -->
+	<select id="queryBySysUserId" parameterType="java.util.List"
+		resultType="com.dzd.phonebook.util.SmsUser">
+		select email,sys_user_id sysUserId from sms_user where 1=1 and email
+		is not null and user_level!=3
+		<if test="list !=null and list.size >0 ">
+			and sys_user_id IN
+			<foreach collection="list" item="id" index="index" open="("
+				close=")" separator=",">
+				#{id}
+			</foreach>
+		</if>
+	</select>
+
+	<!--修改用角色时 修改用户等级 -->
+	<update id="updateUserLevel" parameterType="com.dzd.phonebook.util.SmsUser">
+		update sms_user set
+		user_level=#{userLevel} where sys_user_id=#{sysUserId}
+	</update>
+
+	<!--修改用户 -->
+	<update id="updateUser" parameterType="com.dzd.phonebook.util.SmsUser">
+		update sms_user
+		<trim prefix="set" suffixOverrides=",">
+			<if test="state != null ">
+				state =#{state},
+			</if>
+			<if test="bid != null ">
+				bId =#{bid},
+			</if>
+		</trim>
+		where id=#{id}
+	</update>
+
+	<select id="querySmsBUserById" parameterType="Object"
+		resultType="com.dzd.phonebook.util.SmsUser">
+		select id from sms_user
+		where bid = #{smsUserId}
+	</select>
+
+	<!--根据用户级别查询用户信息 -->
+	<select id="queryByUserLevel" parameterType="java.util.List"
+		resultType="com.dzd.phonebook.util.SmsUser">
+		select id,email,sys_user_id sysUserId from sms_user where 1=1 and
+		email is not null
+		<if test="list.size > 0">
+			and user_level in
+			<foreach collection="list" item="userLevel" index="index"
+				open="(" close=")" separator=",">
+				#{userLevel}
+			</foreach>
+		</if>
+	</select>
+
+	<!--查询超级管理员和一级管理员用户 -->
+	<select id="queryRoleLevel" parameterType="java.util.List"
+		resultType="com.dzd.phonebook.util.SmsUser">
+		select DISTINCT(sys_user_id) sysUserId,email from sms_user where email
+		is not null and sys_user_id in(select
+		objId from sys_role_rel
+		where
+		relType!=2
+		<if test="list.size > 0">
+			and roleId in
+			<foreach collection="list" item="roleId" index="index" open="("
+				close=")" separator=",">
+				#{roleId}
+			</foreach>
+		</if>
+		)
+	</select>
+
+	<!--修改用户发送短信是否需要校验验证码 -->
+	<update id="updateSmsUserVerifyType" parameterType="Object">
+		update
+		sms_user
+		set verify_type = #{verifyType}
+		where id = #{id}
+	</update>
+
+	<!--查询手机号码是否重复 -->
+	<select id="queryPhone" parameterType="Object" resultType="java.lang.Integer">
+		select count(1) from sms_user where phone=#{phone}
+		<if test="id != null and id != ''">
+			and id not in(#{id})
+		</if>
+	</select>
+</mapper>   

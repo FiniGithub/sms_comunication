@@ -1,0 +1,32 @@
+#com-fstable{
+	color: #707070;
+	font-weight: bold;
+	border: 1px solid #EBEBEB;
+}
+.fixed-table-container{
+	border:none;
+}
+
+.fixed-table-container thead th .th-inner {
+    padding: 0px;
+    /* line-height: 24px; */
+    vertical-align: top;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+
+.table > thead:first-child > tr:first-child > th{
+	border-right:1px solid #EBEBEB;
+}
+#com-fstable thead>th{
+	border: 1px solid #EBEBEB;
+    background-color: #FFFFFF;
+}
+#com-fstable tbody>tr{
+	height: 45px;
+}
+ 
+ 

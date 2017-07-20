@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.UserMessageDao">
+    <select id="querySmsAisleGroupByTid" parameterType="java.lang.Integer"
+            resultType="com.dzd.phonebook.util.SmsAisleGroup">
+		SELECT g.id,g.name,g.state,g.type
+		FROM sms_aisle_group g
+		WHERE g.tid = #{tid} and state = 1 and type = 1
+	</select>
+
+
+    <select id="querySmsUserById" parameterType="java.lang.Integer" resultType="com.dzd.phonebook.util.SmsUser">
+		select 
+			su.id,
+			su.name, 
+			sub.money,
+			sub.award_money awardMoney,
+			su.contact,
+			su.phone,
+			su.user_level userLevel,
+			su.email,
+			su.`key`,
+			su.state,
+			su.signature,
+			su.group_type_id groupTypeId,
+			su.aisle_group_id aisleGroupId,
+			su.report_url reportUrl,
+			su.reply_url replyUrl,
+			su.network_charging_state networkChargingState,
+			su.signature signature,
+			su.signature_type signatureType,
+			su.verify_type verifyType
+		from sms_user su
+		LEFT JOIN sms_user_blank  sub on sub.user_id = su.id
+		where sys_user_id = #{id}
+	</select>
+
+
+    <select id="querySmsUserBySmsUserAccount" parameterType="Object" resultType="com.dzd.phonebook.util.SmsUser">
+		select
+		su.id,
+		su.name,
+		sub.money,
+		sub.award_money awardMoney,
+		su.contact,
+		su.phone,
+		su.user_level userLevel,
+		su.email,
+		su.`key`,
+		su.state,
+		su.signature,
+		su.group_type_id groupTypeId,
+		su.aisle_group_id aisleGroupId,
+		su.report_url reportUrl,
+		su.reply_url replyUrl
+		from sms_user su
+		LEFT JOIN sms_user_blank  sub on sub.user_id = su.id
+		where su.email = #{account}
+	</select>
+
+    <select id="querySmsUserByBId" parameterType="java.lang.Integer" resultType="com.dzd.phonebook.util.SmsUser">
+		select
+		su.id,
+		su.name,
+		sub.money,
+		sub.award_money awardMoney,
+		su.contact,
+		su.phone,
+		su.user_level userLevel,
+		su.email,
+		su.`key`,
+		su.state,
+		su.signature,
+		su.group_type_id groupTypeId,
+		su.aisle_group_id aisleGroupId,
+		su.report_url reportUrl,
+		su.reply_url replyUrl
+		from sms_user su
+		LEFT JOIN sms_user_blank  sub on sub.user_id = su.id
+		where bid = #{id}
+	</select>
+
+    <select id="querySmsUserSign" parameterType="java.util.Map" resultType="java.lang.String">
+        select a.signature from sms_user_signature a where 1 = 1
+        <if test="smsId != null">
+            and a.sms_user_id=#{smsId}
+        </if>
+    </select>
+
+    <select id="getSmsPullReport" parameterType="java.util.Map" resultType="com.dzd.sms.service.data.SmsPullReport">
+		select 
+			b.id id,
+			b.sms_send_task_id taskId,
+			b.state state,
+			b.create_time createTime,
+			b.phone mobile
+		from sms_send_task_phone b 
+		left join sms_send_task a on a.id=b.sms_send_task_id
+		where a.sms_user_id=#{userId} and b.state>0 and b.state!=99 and b.push_state=1
+		limit #{limit};
+	</select>
+
+    <select id="getSmsReply" parameterType="java.util.Map" resultType="com.dzd.sms.service.data.SmsReciveReply">
+        SELECT
+        a.id,
+        a.content,
+        a.phone mobile,
+        a.create_time createTime
+        FROM sms_receive_reply_push a
+        where a.sms_user_id=#{userId}
+        and create_time BETWEEN #{startTime} and #{endTime}
+        <if test="mobiles != null">
+            and phone=#{mobiles}
+        </if>
+        limit #{limit}
+    </select>
+
+    <select id="querySmsUserPrice" resultType="com.dzd.phonebook.util.SmsAisleGroupHasSmsUser"
+            parameterType="java.lang.Integer">
+		select 
+			ss.u_price uprice,
+			ss.m_price mprice,
+			ss.t_price tprice,
+			sag.tid  aisleTypeId
+		from sms_aisle_group_has_sms_user  ss
+		LEFT JOIN sms_aisle_group sag on sag.id = ss.sms_aisle_group_id
+		where ss.sms_user_id = #{id}
+	</select>
+
+    <update id="updateSmsUserById" parameterType="com.dzd.phonebook.util.SmsUser">
+		update sms_user
+		set report_url = #{reportUrl},
+			reply_url = #{replyUrl},
+			update_time = now()
+		where id = #{id}
+	</update>
+
+
+    <update id="updateUserAg" parameterType="com.dzd.phonebook.util.SmsAisleGroupHasSmsUser">
+		update sms_aisle_group_has_sms_user
+		set sms_aisle_group_id = #{smsAisleGroupId},
+			update_time = now()
+		where id = #{id}
+	</update>
+
+    <insert id="addUserAg" parameterType="com.dzd.phonebook.util.SmsAisleGroupHasSmsUser">
+        <selectKey resultType="java.lang.Integer" order="AFTER"
+                   keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into
+        sms_aisle_group_has_sms_user(id,sms_user_id,create_time,add_type)
+        values(#{id},#{smsUserId},now(),2)
+    </insert>
+
+    <update id="updateSmsUserKey" parameterType="com.dzd.phonebook.util.SmsUser">
+		update sms_user set `key` = #{key} where id=#{id}
+	</update>
+
+    <select id="querySmsUserKeyById" parameterType="java.lang.Integer" resultType="java.lang.String">
+		select `key` from sms_user where id=#{uid}
+	</select>
+
+    <select id="querySysConfig" parameterType="java.lang.String" resultType="java.lang.String">
+		select `values` from sys_config where `key` = #{key}
+	</select>
+
+    <!-- 查询充值账户 -->
+    <select id="queryRechargeSmsUserList" parameterType="Object" resultType="com.dzd.phonebook.util.SmsUser">
+        SELECT su.id,su.name
+        FROM sms_user su
+        WHERE 1=1
+        <if test="superAdmin!=null and superAdmin!=1">
+            AND su.bid = #{smsId}
+        </if>
+    </select>
+
+
+</mapper>

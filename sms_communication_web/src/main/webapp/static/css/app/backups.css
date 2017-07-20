@@ -1,0 +1,25 @@
+/**
+* 短信群发样式
+*/
+
+.li_hide,#text_phone,#font-allNum-once,.lead-finish{
+	display: none;
+}
+.lead-finish{
+	
+}
+.flex-hint{
+	width: 16px;    margin-left: 95px;
+}
+
+.disable_gray{
+	background: gainsboro;
+	border: 1px gainsboro solid;
+}
+
+.p-manage-msg{
+	margin-left: 80px;
+}
+
+
+ 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsApiConfigDao">
+	
+	<!-- 查询API配置信息 -->
+	<select id="querySmsApiConfigList"  resultType="com.dzd.phonebook.entity.SmsApiConfig">
+		SELECT id,title,content,sortId,created
+		FROM sms_api_config
+		order by sortId
+	</select>
+	
+
+</mapper>   

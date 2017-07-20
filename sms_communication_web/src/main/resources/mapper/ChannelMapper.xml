@@ -1,0 +1,608 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.ChannelDao">
+
+    <select id="queryDistrict" resultType="com.dzd.phonebook.entity.District">
+		select id,districtName  from p_district where parentId = 0
+	</select>
+
+    <select id="querySmsAisleList" resultType="com.dzd.phonebook.util.SmsAisle">
+		select * from sms_aisle
+	</select>
+
+
+    <select id="querySmsUserListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+            resultType="com.dzd.phonebook.util.SmsAisle">
+        select
+        sa.id,
+        sa.name,
+        sa.money,
+        sa.remaining_num remainingNum,
+        sa.state,
+        sa.sms_aisle_type_id smsAisleTypeId,
+        (select name from sms_aisle_group_type where id=sa.sms_aisle_type_id) typeName,
+        (select name from sms_shield_word where id=sa.shielding_field_id) shieldingField,
+        sa.comment,
+        sa.start_count startCount,
+        sa.create_time createTime
+        from sms_aisle sa where 1=1
+        <if test="condition != null and condition.startInput != null">
+            and date_format(sa.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]>
+            date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+            and date_format(sa.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]>
+            date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+        </if>
+        <if test="condition != null and condition.state != null">
+            and sa.state = ${condition.state}
+        </if>
+        <if test="condition != null and condition.name != null">
+            and sa.name like '%${condition.name}%'
+        </if>
+
+        <if test="condition != null and condition.sortVal != null">
+            ${condition.sortVal}
+        </if>
+    </select>
+
+
+    <insert id="saveSmsAisle" parameterType="com.dzd.phonebook.util.SmsAisle">
+        <selectKey resultType="java.lang.Integer" order="AFTER"
+                   keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert INTO sms_aisle (id,
+        name,
+        sms_aisle_type_id,
+        sms_region_id,
+        create_time,
+        shielding_field_id,
+        state,
+        comment,
+        max_num,
+        single_num,
+        signature_state,
+        mobile_sate,
+        unicom_sate,
+        telecom_state,
+        class_name,
+        option_value,
+        succeed_billing,
+        failure_billing,
+        unknown_billing,
+        start_count,
+        extra,money)
+        values(#{id},
+        #{name,jdbcType=VARCHAR},
+        #{smsAisleTypeId},
+        #{smsRegionId},
+        now(),
+        #{shieldingFieldId},
+        #{state},
+        #{comment,jdbcType=VARCHAR},
+        #{maxNum},
+        #{singleNum},
+        #{signatureState},
+        #{mobileSate},
+        #{unicomSate},
+        #{telecomState},
+        #{className},
+        #{optionValue},
+        #{succeedBilling},
+        #{failureBilling},
+        #{unknownBilling},
+        #{startCount},
+        #{extra},
+        #{money})
+    </insert>
+
+
+    <select id="queryById" parameterType="java.lang.Integer" resultType="com.dzd.phonebook.util.SmsAisle">
+        select
+        id,
+        name,
+        sms_aisle_type_id smsAisleTypeId,
+        sms_region_id smsRegionId,
+        shielding_field_id shieldingFieldId,
+        state,
+        comment,
+        max_num maxNum,
+        single_num singleNum,
+        signature_state signatureState,
+        mobile_sate mobileSate,
+        unicom_sate unicomSate,
+        class_name className,
+        option_value optionValue,
+        succeed_billing succeedBilling,
+        failure_billing failureBilling,
+        unknown_billing unknownBilling,
+       start_count startCount,
+        money
+        from sms_aisle
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateSmsAisle" parameterType="com.dzd.phonebook.util.SmsAisle">
+        update
+        sms_aisle
+        set
+        name = #{name,jdbcType=VARCHAR},
+        sms_aisle_type_id = #{smsAisleTypeId},
+        sms_region_id = #{smsRegionId},
+        update_time = now(),
+        shielding_field_id = #{shieldingFieldId},
+        state = #{state},
+        comment = #{comment,jdbcType=VARCHAR},
+        max_num = #{maxNum},
+        single_num = #{singleNum},
+        signature_state = #{signatureState},
+        class_name = #{className},
+        option_value = #{optionValue},
+        succeed_billing = #{succeedBilling},
+        failure_billing = #{failureBilling},
+        unknown_billing = #{unknownBilling},
+        extra = #{extra},
+        start_count = #{startCount},
+        money=#{money}
+        where id=#{id}
+
+    </update>
+
+    <delete id="delete" parameterType="java.lang.Integer">
+		delete from sms_aisle where id=#{id}
+	</delete>
+
+    <delete id="deleteAisleHasGroupByaid" parameterType="java.lang.Integer">
+		delete from sms_aisle_group_has_sms_aisle where sms_aisle_id=#{id}
+	</delete>
+
+
+    <!-- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>通道组功能<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< -->
+
+    <select id="querySmsAisleGroupType" resultType="com.dzd.phonebook.util.SmsAisleGroupType">
+		select id,name from sms_aisle_group_type
+	</select>
+
+    <select id="querySmsAisleGroupListPage" parameterType="com.dzd.phonebook.util.DzdPageParam"
+            resultType="com.dzd.phonebook.util.SmsAisleGroup">
+        select * from (select
+        sag.id,
+        sag.name,
+        sag.tid,
+        sag.smsLength,
+        sag.dredge_AM dredgeAM,
+        sag.dredge_PM dredgePM,
+        sag.unregTypeId,
+        sag.notice,
+        sag.hint,
+        sag.signature,
+        sag.shielding_field_id shieldingFieldId,
+        (select name from sms_aisle_group_type where id=sag.tid) typeName,
+        sag.describes,
+        sag.state,
+        sag.sort sorts,
+        sag.create_time createTime
+        from sms_aisle_group sag where 1=1
+        <if test="condition != null and condition.startInput != null">
+            and date_format(sag.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]>
+            date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+            and date_format(sag.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]>
+            date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+        </if>
+        <if test="condition != null and condition.state != null">
+            and sag.state = ${condition.state}
+        </if>
+        <if test="condition != null and condition.name != null">
+            and sag.name like '%${condition.name}%'
+        </if>
+        ) ss
+        <if test="condition != null and condition.sortVal != null">
+            ${condition.sortVal}
+        </if>
+    </select>
+
+
+    <select id="querySmsAisleListById" resultType="com.dzd.phonebook.util.SmsAisle" parameterType="java.lang.Integer">
+			select s.id,s.name,s.sms_region_id  smsRegionId,
+				   (select districtName from p_district where id=s.sms_region_id) regionName,
+				   s.mobile_sate mobileSate,
+				   s.mobile_money mobileMoney,
+				   s.unicom_sate unicomSate,
+				   s.unicom_money unicomMoney,
+				   s.telecom_state telecomState,
+				   s.telecom_money telecomMoney
+			from sms_aisle s
+			where sms_aisle_type_id =#{id} and state=1
+	</select>
+
+    <insert id="saveSmsAislegroup" parameterType="com.dzd.phonebook.util.SmsAisleGroup">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO sms_aisle_group
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="name != null">
+                name,
+            </if>
+
+            create_time,
+            <if test="tid != null">
+                tid ,
+            </if>
+            <if test="state != null">
+                state,
+            </if>
+            <if test="describes != null">
+                describes,
+            </if>
+            <if test="oneIntervalPrice != null">
+                one_interval_price,
+            </if>
+            <if test="oneIntervalStart != null">
+                one_interval_start,
+            </if>
+            <if test="oneIntervalEnd != null">
+                one_interval_end,
+            </if>
+            <if test="twoIntervalPrice != null">
+                two_interval_price,
+            </if>
+            <if test="twoIntervalStart != null">
+                two_interval_start,
+            </if>
+            <if test="twoIntervalEnd != null">
+                two_interval_end,
+            </if>
+            <if test="threeIntervalPrice != null">
+                three_interval_price,
+            </if>
+            <if test="threeIntervalStart != null">
+                three_interval_start,
+            </if>
+            <if test="threeIntervalEnd != null">
+                three_interval_end,
+            </if>
+            <if test="succeedBilling != null">
+                succeed_billing,
+            </if>
+            <if test="failureBilling != null">
+                failure_billing,
+            </if>
+            <if test="unknownBilling != null">
+                unknown_billing,
+            </if>
+            <if test="type != null">
+                type,
+            </if>
+            <if test="smsLength != null">
+                smsLength,
+            </if>
+            <if test="unregTypeId != null">
+                unregTypeId,
+            </if>
+            <if test="shieldingFieldId != null">
+                shielding_field_id,
+            </if>
+            <if test="notice != null">
+                notice,
+            </if>
+            <if test="hint != null">
+                hint,
+            </if>
+            <if test="signature != null">
+                signature,
+            </if>
+            <if test="dredgeAM != null">
+                dredge_AM,
+            </if>
+            <if test="dredgePM != null">
+                dredge_PM,
+            </if>
+
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+
+            <if test="id != null">
+                #{id, jdbcType=INTEGER},
+            </if>
+
+            <if test="name != null">
+                #{name, jdbcType=VARCHAR},
+            </if>
+            now(),
+            <if test="tid != null">
+                #{tid, jdbcType=INTEGER},
+            </if>
+            <if test="state != null">
+                #{state, jdbcType=INTEGER},
+            </if>
+            <if test="describes != null">
+                #{describes},
+            </if>
+            <if test="oneIntervalPrice != null">
+                #{oneIntervalPrice},
+            </if>
+            <if test="oneIntervalStart != null">
+                #{oneIntervalStart},
+            </if>
+            <if test="oneIntervalEnd != null">
+                #{oneIntervalEnd},
+            </if>
+            <if test="twoIntervalPrice != null">
+                #{twoIntervalPrice},
+            </if>
+            <if test="twoIntervalStart != null">
+                #{twoIntervalStart},
+            </if>
+            <if test="twoIntervalEnd != null">
+                #{twoIntervalEnd},
+            </if>
+            <if test="threeIntervalPrice != null">
+                #{threeIntervalPrice},
+            </if>
+            <if test="threeIntervalStart != null">
+                #{threeIntervalStart},
+            </if>
+            <if test="threeIntervalEnd != null">
+                #{threeIntervalEnd},
+            </if>
+            <if test="succeedBilling != null">
+                #{succeedBilling},
+            </if>
+            <if test="failureBilling != null">
+                #{failureBilling},
+            </if>
+            <if test="unknownBilling != null">
+                #{unknownBilling},
+            </if>
+            <if test="type != null">
+                type,
+            </if>
+
+            <if test="smsLength != null">
+                #{smsLength},
+            </if>
+            <if test="unregTypeId != null">
+                #{unregTypeId},
+            </if>
+            <if test="shieldingFieldId != null">
+                #{shieldingFieldId},
+            </if>
+            <if test="notice != null">
+                #{notice},
+            </if>
+            <if test="hint != null">
+                #{hint},
+            </if>
+            <if test="signature != null">
+                #{signature},
+            </if>
+            <if test="dredgeAM != null">
+                #{dredgeAM},
+            </if>
+            <if test="dredgePM != null">
+                #{dredgePM},
+            </if>
+        </trim>
+    </insert>
+
+
+    <insert id="saveSmsAislegroupHasAisle" parameterType="com.dzd.phonebook.util.SmsAisleGroupHasSmsAisle">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO sms_aisle_group_has_sms_aisle
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="smsAisleGroupId != null">
+                sms_aisle_group_id,
+            </if>
+
+            create_time,
+            <if test="smsAisleId != null">
+                sms_aisle_id ,
+            </if>
+            <if test="minSendNum != null">
+                min_send_num,
+            </if>
+            <if test="minSendNum != null">
+                min_send_num,
+            </if>
+            <if test="operatorId != null">
+                operator_id,
+            </if>
+
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+
+            <if test="id != null">
+                #{id, jdbcType=INTEGER},
+            </if>
+
+            <if test="smsAisleGroupId != null">
+                #{smsAisleGroupId, jdbcType=INTEGER},
+            </if>
+            now(),
+            <if test="smsAisleId != null">
+                #{smsAisleId, jdbcType=INTEGER},
+            </if>
+            <if test="minSendNum != null">
+                #{minSendNum, jdbcType=INTEGER},
+            </if>
+            <if test="operatorId != null">
+                #{operatorId, jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="querySmsAisleGroupById" parameterType="java.lang.Integer"
+            resultType="com.dzd.phonebook.util.SmsAisleGroup">
+		select 
+			sag.id,
+			sag.name,
+			sag.tid,
+			(select name from sms_aisle_group_type where id=sag.tid) typeName,
+			sag.describes,
+			sag.state,
+		  	sag.create_time  createTime,
+			sag.one_interval_price  oneIntervalPrice,
+			sag.one_interval_start  oneIntervalStart, 
+			sag.one_interval_end  oneIntervalEnd,
+			sag.two_interval_price  twoIntervalPrice,
+			sag.two_interval_start  twoIntervalStart,
+			sag.two_interval_end  twoIntervalEnd,
+			sag.three_interval_price  threeIntervalPrice,
+			sag.three_interval_start  threeIntervalStart,
+			sag.three_interval_end  threeIntervalEnd,
+			sag.succeed_billing  succeedBilling,
+			sag.failure_billing  failureBilling,
+			sag.unknown_billing  unknownBilling,
+			sag.type,
+			sag.smsLength,
+			sag.unregTypeId,
+			sag.shielding_field_id shieldingFieldId,
+			sag.notice,
+			sag.hint,
+			sag.signature,
+			sag.dredge_AM dredgeAM,
+			sag.dredge_PM dredgePM
+		from sms_aisle_group sag where id=#{id}
+	</select>
+
+
+    <select id="queryAisleHasGroupListById" parameterType="java.lang.Integer"
+            resultType="com.dzd.phonebook.util.SmsAisleGroupHasSmsAisle">
+		select 
+			id,
+			sms_aisle_id smsAisleId,
+			min_send_num minSendNum,
+			operator_id operatorId
+		from sms_aisle_group_has_sms_aisle 
+		where sms_aisle_group_id=#{id}
+	</select>
+
+
+    <select id="querySmsAisleHasSmsAisleGroupByOperatorId" parameterType="Object" resultType="com.dzd.phonebook.util.SmsAisleGroupHasSmsAisle">
+        select
+        sa.name smsAisleName,sag.sms_aisle_group_id smsAisleGroupId,sag.sms_aisle_id smsAisleId,sag.operator_id operatorId ,sa.state smsAisleState,sa.start_count startCount
+        from sms_aisle_group_has_sms_aisle sag
+        LEFT JOIN sms_aisle sa on sa.id = sag.sms_aisle_id
+        where sms_aisle_group_id = #{gid} and operator_id = #{operatorId}
+    </select>
+
+
+    <select id="querySmsAisleInfoById" parameterType="Object" resultType="com.dzd.phonebook.util.SmsAisleGroup">
+		select
+		s.id,s.name,s.state,s.smsLength,s.dredge_AM dredgeAM,s.dredge_PM dredgePM,sag.min_send_num  minSendNum,s.shielding_field_id shieldingFieldId
+	    from sms_aisle_group s
+        LEFT JOIN sms_aisle_group_has_sms_aisle sag on sag.sms_aisle_group_id = s.id
+		where s.id=#{id}
+	</select>
+
+
+    <update id="updateSmsAislegroup" parameterType="com.dzd.phonebook.util.SmsAisleGroup">
+        update sms_aisle_group
+        set
+            name = #{name}
+            ,update_time=now()
+            ,tid = #{tid}
+            ,state = #{state}
+            ,describes = #{describes}
+            ,one_interval_price = #{oneIntervalPrice}
+            ,one_interval_start = #{oneIntervalStart}
+            ,one_interval_end = #{oneIntervalEnd}
+            ,two_interval_price = #{twoIntervalPrice}
+            ,two_interval_start = #{twoIntervalStart}
+            ,two_interval_end = #{twoIntervalEnd}
+            ,three_interval_price = #{threeIntervalPrice}
+            ,three_interval_start = #{threeIntervalStart}
+            ,three_interval_end = #{threeIntervalEnd}
+            ,succeed_billing = #{succeedBilling}
+            ,failure_billing = #{failureBilling}
+            ,unknown_billing = #{unknownBilling}
+            ,smsLength = #{smsLength}
+            ,unregTypeId = #{unregTypeId}
+            ,shielding_field_id= #{shieldingFieldId}
+            ,notice = #{notice}
+            ,hint = #{hint}
+            ,signature = #{signature}
+        ,dredge_AM = #{dredgeAM}
+        ,dredge_PM = #{dredgePM}
+        ,type = #{type}
+        where id=#{id}
+    </update>
+
+    <delete id="deleteSmsAislegroupHasAisle" parameterType="java.lang.Integer">
+		DELETE from sms_aisle_group_has_sms_aisle where  sms_aisle_group_id = #{id}
+	</delete>
+
+    <delete id="deleteUserAisleGroup" parameterType="java.lang.Integer">
+		DELETE from sms_aisle_group_has_sms_user where  sms_aisle_group_id = #{id}
+	</delete>
+
+    <delete id="deleteAisleGroup" parameterType="java.lang.Integer">
+		DELETE from sms_aisle_group where  id = #{id}
+	</delete>
+
+
+    <select id="querySmsAisleGroupIdName" parameterType="java.lang.Integer"
+            resultType="com.dzd.phonebook.util.SmsAisleGroup">
+		select 
+			sag.id,
+			sag.name
+		from sms_aisle_group sag where sag.tid=#{id} and state=1
+	</select>
+
+    <!-- 	<select id="queryAisleSourceList" resultType="com.dzd.phonebook.util.SmsAisleSource">
+            select
+                sms_aisle_key smsAisleKey,
+                sms_aisle_name smsAisleName
+            from
+            sms_aisle_source
+        </select> -->
+
+    <select id="queryAisleSourceList" resultType="com.dzd.phonebook.util.SmsAisleSource">
+		select  
+			class_name smsAisleKey,
+			aisle_name smsAisleName
+		from 
+		sms_plugin
+	</select>
+
+    <select id="querySmsAisleGrouphasUserById" resultType="java.lang.String" parameterType="java.lang.Integer">
+		select 
+			group_concat(sms_user_id separator ',') 
+		from sms_aisle_group_has_sms_user 
+		where sms_aisle_group_id=#{aisleGroupid}
+	</select>
+
+    <select id="queryPluginConfig" resultType="java.lang.String" parameterType="java.lang.String">
+		select config from sms_plugin where class_name = #{className}
+	</select>
+
+    <select id="querySmsShieldWordByType" resultType="com.dzd.phonebook.util.SmsShieldWord"
+            parameterType="java.lang.Integer">
+		select id,name from sms_shield_word where type=#{swType}
+	</select>
+
+    <select id="queryAisleGroupDft" resultType="java.lang.Integer" parameterType="Object">
+        select count(1) from sms_aisle_group where tid = #{aisleType} and type =1
+        <if test="aisleId != null and aisleId != -1">
+            and id not in (#{aisleId})
+        </if>
+    </select>
+
+    <select id="querySmsUserList" resultType="com.dzd.phonebook.util.SmsUser" parameterType="Object">
+        select id,name,email,group_type_id groupTypeId from sms_user where state = 0
+        <if test="id != null and id != -1 ">
+            and bId in (select id from sys_user where id=#{id} or superiorId =#{id})
+        </if>
+    </select>
+
+</mapper>   

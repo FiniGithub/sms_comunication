@@ -1,0 +1,671 @@
+﻿.f-l{
+	float: left;
+}
+.f-r{
+	float: right;
+}
+.pd0{
+	padding:0!important;
+}
+.mg0{
+	margin:0!important;
+}
+p{
+	padding: 0;margin: 0;
+}
+a{
+	text-decoration: none;
+}
+.bgou:hover{
+	text-decoration:none;color:#ffffff!important;background:#437dc0;
+}
+img,button{
+	border: none;
+}
+input,a,button{
+	outline: none;
+}
+
+
+
+select{
+	height:22px;line-height:22px;border:1px solid #dddddd;position:relative;top:1px;
+}
+.com-menu{
+	font-size:12px;
+}
+select:after{
+	content:'';
+	display:inline-blcok;
+	position:absolute;
+	width:20px;
+	height:20px;
+	background:url(../img/xiala2.png) no-repeat center;
+}
+#start_input,#end_input{
+	width:85px;
+}
+/*label::after {
+   content: '';
+   
+  display: inline-block;
+  position: relative;
+  width: 20px;
+  height: 20px;
+  left: 100%;
+  vertical-align: middle;
+  margin: 10px;
+}*/
+li{
+	list-style: none;
+}
+textarea{
+	resize: none;vertical-align: middle;border: 1px solid #80b2f5;
+	
+}
+input[type="button"]{
+border: none;border-radius: 4px;background: #4284DA;color: #FFFFFF;height: 24px;line-height: 24px;text-align: center;
+}
+input[type="button"]:active,.f-btn:active{
+    background: #F3F3F3!important;
+    color: #666;
+    position: relative;
+  
+    border: 1px solid #dddddd!important;
+}
+input[type="button"]:hover{
+background:#437dc0;cursor: pointer;
+}
+input[type="text"],input[type="password"]:{
+	border:1px solid #bdbdbd;width: 150px;height: 30px;line-height: 30px;
+}
+input[type="text"]:focus{
+	border: 1px solid #4284DA;
+}
+button:hover{
+cursor: pointer;
+}
+.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th{
+	
+	padding:5px;
+}
+.fixed-table-container .bs-checkbox .th-inner{
+	padding:0;
+}
+.fixed-table-container thead th .th-inner, .fixed-table-container tbody td .th-inner{
+	padding:5px;line-height:normal;
+}
+.table-striped>tbody>tr:nth-of-type(odd){
+	background:#fff;
+}
+.f-btn{
+	height: 22px!important;line-height: 20px!important;width: 62px;border:1px solid #4284DA!important;
+	font-size:12px;
+}
+
+.inp-inp{
+	margin-left: 10px;margin-right: 20px;text-indent: 10px;
+}
+ .account-title{
+ 	color:#4284DA;
+ }
+ .cfd{
+ color: #FD0000;
+ }
+/*鐭俊鍙戦��*/
+table{
+	border-spacing: 0;
+	border-collapse: collapse;
+	
+}
+.tab-box{
+	padding-left:5px;
+}
+
+.dzd-table{
+	font-size:12px;width:100%;
+}
+.bannernotice{
+	height:
+}
+.dzd-table tr>td{
+ border: 1px solid #e5e5e5;text-align: center;padding: 10px 12px;white-space:nowrap;color:#585959;
+}
+.dzd-table tr td>ul>li{
+	white-space:nowrap;
+}
+.dzd-table tr td>ul{
+	text-align: left;padding-left:4px;
+}
+.addNum-box{
+	
+}
+.inp-box-inp{
+	width:100px;height:20px;line-height:20px;border:1px solid #dddddd;
+}
+#check_send_time{
+	margin-left:20px;
+}
+.sendbtn-box{
+	text-align:center;padding-top:4px;
+}
+.h-title{
+	padding:9px 0 7px 0;font-size:12px;
+}
+.h-title>span{
+	color: #ff5a5a;
+}
+.tab-h{
+	width:75px;font-size:12px;
+}
+
+.tab-content{
+		text-align:left!important;width:550px;
+}
+.pho-count{
+	color:#ff5a5a
+}
+.addPhon-box{
+	text-align: left!important;
+}
+
+.addphon-btn-box{
+	overflow: hidden;padding-top: 4px;
+}
+.clear-btn{
+	margin-right: 10px;
+}
+.result-num-box{
+	text-align:left;padding-left:10px;color:#4284DA;white-space:normal;word-break:break-all;width:400px;
+}
+.result-num-box>span{
+color: #ff5a5a;
+}
+.addNum-text{
+	overflow-x:hidden;overflow-y: auto;padding: 10px;width: 448px;height: 60px;border-radius:4px;
+}
+.inp-day{
+	display:inline-block;
+}
+.inp-day .input-group-addon{
+	display:inline-block;
+}
+.addNum-btn{
+	background:url(../img/addBtn.png) no-repeat center;width:64px;height:50px;color:#ffffff;text-align:center;
+	vertical-align: middle;margin-left:10px;
+}
+.dxnum{
+	padding-top:4px;
+}
+.dxnum>span{
+	color:#fd0000;
+}
+.addNum-btn:active{
+	background:url(../img/addBtn2.png) no-repeat center;color:#666;
+}
+.delt-btn{
+	text-decoration: underline;
+    display: inline-block;
+    width: 20px!important;
+    color: #4284DA;
+    height: 15px;  
+    top: -6px;
+    text-align: center;
+    position: relative;
+}
+.modal{
+	font-size:12px;
+}
+.delt-btn:hover{
+	cursor:pointer;
+}
+.addPhon-text{
+	width: 525px;height: 60px;border: 1px solid #e5e5e5;overflow-x:hidden;overflow-y: auto;padding: 10px;
+}
+.addPhon-text>div{
+	height:18px;
+}
+.addPhon-text span{
+	white-space:nowrap;text-overflow: ellipsis;overflow:hidden;display:inline-block;width:96px;
+}
+/*网上充值*/
+.inp-box{
+	display: inline-block;margin:8px;font-size:12px;margin-left:0px;margin-bottom:2px;
+}
+.bank-box{
+	margin-top:4px;
+}
+.bank-box img{
+	position:relative;top:4px;
+}
+.hint-box>li,.account-box>li{
+	line-height:20px;
+}
+.inp-box ul{
+	padding-left:0;
+}
+
+
+.hint-box,.account-box,.hint-box{
+font-size:12px
+}
+.inp-box ul li{
+	display: inline-block;list-style: none;width: 150px;height: 31px;line-height: 34px;border: 1px solid #BDBDBD;text-align: center;margin: 4px 10px;
+}
+.bank-logo{
+	text-align: center;line-height:nomal!important;
+}
+.bank-logo img{
+	height: 20px;width: 100px;position: relative;top:4px;
+}
+
+.account-box>li>ul{
+	display: inline-block;
+}
+.account-box{
+	border-top:1px solid #bdbdbd;padding-top:20px;
+}
+/*发送记录*/
+.fixed-table-container{
+	margin:2px;border-radius:0px;
+}
+.page-list{
+	
+}
+.bootstrap-table .table{
+	border-bottom:none;font-size:12px;
+}
+.bootstrap-table .table tr th{
+	font-weight:normal;text-align:center!important;background:#F3F3F3;
+}
+.pagination-detail .dropdown-menu{
+	min-width:auto;
+}
+.fixed-table-pagination .pagination a{
+	padding:5px;text-decoration:underline;padding-top:2px;
+}
+.com-menu{
+	color:#4284DA!important;
+}
+.inp-menu{
+	color:#666!important;
+}
+.pagination>li>a,.pagination>li>span{
+	padding:5px;border:none;
+}
+.pagination>.active>a,.pagination>.active>a:hover{
+background-color:#ffffff;color:#337ab7!important;
+}
+.page-number>a{
+	color:#666666!important;
+}
+/*短信发送*/
+.input-group-addon{
+	background:#fff;border:none;
+}
+.daylogo{
+	position:absolute;top:8px;right:10px;
+}
+.glyphicon-calendar:before{
+	content:"";
+}
+#input_send_timing{
+	height:18px;line-height:18px;width: 125px;
+    text-align: center;
+}
+.snotice{
+    text-align: left;
+    padding-left: 10px;
+    color: #4284DA;
+    white-space: normal;
+    word-break: break-all;
+    width: 400px;
+}
+#laydate_box,#laydate_box div,#laydate_box table,#laydate_box ul li,#laydate_box input,#laydate_box a{
+	box-sizing:content-box;
+}
+.type-box{
+	position:relative;
+}
+.send_time_box>input[type="radio"]{
+	position:relative;top:2px;
+}
+.send_box{
+	text-align:left;overflow:hidden;position:relative;top:-8px;
+}
+.caret{
+   border-top:7px dashed
+}
+.pho-s-inp {
+	display:inline-block;width:200px;background: #FFFFFF;border: 1px solid #dddddd;height: 24px;line-height: 24px;margin: 0px 10px;padding-left: 5px;padding-right: 4px;	position: relative;	z-index: 3;
+}
+.xlbox {
+	position: absolute;	top: 22px;right: -1px;width: 200px;border: 1px solid #dddddd;	max-height: 150px;background: #FFFFFF;
+	display: none;overflow-x: hidden;overflow-y: auto;
+}
+.pho-s-inp>input[type=button] {
+	line-height: 20px;	height: 20px;position:relative;
+}
+.pho-s-inp a{	
+color: #707070;	display: inline;background: none;border: none;margin-right: 5px;margin-top:2px;right:-1px;
+}
+.xlbtn{
+	position: absolute;	background: none!important;
+}
+.xlbtn:hover{
+	cursor:pointer;
+}
+.xia-bg{
+	height:20px;width:20px;display:inline-block;background:url(../img/xialahui.png) no-repeat center;
+}
+.dxcontent-xg-txt{
+	width:525px;height:140px;border-radius:4px;padding:10px;white-space: normal!important;
+}
+.xlbox>p{
+	padding-left:18px;
+}
+.xlbox>p:hover{
+	cursor:pointer;background:#F3F3F3;
+}
+.pho-s-inp-box{
+	height:24px;
+}
+/*伪类清楚浮动*/
+.pho-s-inp-box:after,.send_box:after{
+	content:'';
+	clear:both;
+}
+/*账号管理*/
+.row{
+	margin:0;margin-top:2px;
+}
+.table>tbody>tr>td{
+	max-width:300px!important;word-break : break-all;text-align:center;
+}
+/*
+*发送短信
+*/
+.pho-count,.dxlength,.s-dxlength,.smslength{
+	color:#fd0000;
+}
+#upload_file .modal-content,#upload_file .modal-dialog,#verifyAndDetailModal .modal-content,#verifyAndDetailModal .modal-dialog{
+	width:400px!important;
+}
+.yzmdb{
+	display:table;
+}
+.yzmdb>li{
+	display:table-cell;
+}
+.modal-header{
+background: #f3f3f3;
+    height: 30px;
+}
+.close>span{
+	    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: url(../img/awcha.png) no-repeat center;
+}
+.close{
+	opacity:1;
+}
+.modal-header .close{
+	margin-top:-10px;position: relative;
+    z-index: 10;
+}
+.modal-footer{
+	text-align:center;border:none;padding-top:0px;
+}
+.proge-num-box img{
+	display:none;
+}
+.alwd-upload-inp{
+	white-space:nowrap;padding:0;margin-top:20px;
+}
+.proge_li{
+	text-align:center;
+}
+#uploadFile{
+	text-align:center;
+}
+#input_sign{
+	height:24px;line-height:24px;
+}
+.send_time_box{
+	display:inline-block;height:30px;line-height:30px;float:left;
+}
+.day-box{
+	margin-left:10px;
+}
+.pho-s-inp a{
+	height:20px;
+}
+/*申请页面*/
+.form-inp-box{
+	padding: 6px;
+}
+.form-inp-box>span{
+	width: 110px;display: inline-block;text-align: right;
+}
+.form-inp-ul{
+	text-align: left;
+}
+/*发送记录*/
+.inp-day .daylogo{
+	top:10px;
+}
+#fs-table a{
+	margin:5px;
+}
+.b-btn{
+	border: none;border-radius: 4px;background: #4284DA;color:#fff;line-height:20px!important;
+}
+.b-btn:hover{
+	color:#fff;background:#437DD5;
+}
+.time_pick{
+	display:inline-block;
+}
+.timepicker_wrap{
+	width:184%;
+}
+ul.pagination{
+	padding-top:4px;
+}
+ul.pagination a:hover{
+	color:#666;background:none;
+}
+.minlid a:hover{
+	color:#666;background:none;
+}
+
+#signature_type2{
+	margin-left:120px;
+}
+.modal-content{
+	border-radius: 0px;
+}
+/*
+*运营商号区分
+*/
+.mobileCheckbtnbox{
+	font-size:12px;text-align:center;width:200px;height:30px;line-height:30px;background:#e4e4e4;border:1px solid #c2c2c2;
+}
+.mobileCheckbtnbox input[type="checkbox"]{
+	position:relative;top:3px;
+}
+.phnum{
+	color:#FD0000;
+}
+.filtertextear{
+	width:200px;border:1px solid #c2c2c2;text-align:center;background:#fafafa;
+	height:420px;border-top:none;overflow:hidden;
+}
+.filter-pho-table tr td{
+	padding-left:24px;width:224px;
+}
+.filter-pho-table tr td>button{
+	padding: 2px 6px;
+}
+.fixed-table-container thead th .both{
+	background-image:
+}
+.clearfix{
+	display:none;
+}
+.minlid{
+	height:26px;line-height:26px;display:none;
+}
+.minlid>a{
+	margin-left:10px;margin-right:4px;text-decoration:underline;
+}
+.page-inp{
+	width:60px;height:18px;line-height:18px;
+}
+.pagination-detail{
+	margin-top:0px!important;
+}
+.btn-group-sm>.btn, .btn-sm{
+	padding:0;line-height:normal;text-decoration:underline;margin-left:4px;
+}
+.btn-group-sm>.btn, .btn-sm:hover{
+	text-decoration:underline;color:#666;
+}
+#pagenum{
+	margin-left:8px;
+}
+#turnpage{
+	margin-left:6px;
+}
+.fitle{
+	display:inline-block;
+	white-space:nowrap;text-overflow: ellipsis;width:250px;overflow:hidden;
+}
+.pagination{
+	margin-top:0px!important;
+}
+.page-inp{
+	text-align:center;
+}
+.icon-arrow-right{
+	background:url(../img/shangla.png) no-repeat;
+}
+.qftab{
+	width:100%;
+}
+#btnMessage input{
+	margin-left:3px;
+}
+#money{
+	color:#fd0000;
+}
+ /**
+弹窗
+*/
+#upload_form{
+	text-align:center;
+}
+.model-cont{
+    text-align: left;
+    display: inline-grid;width:580px;}
+ .iebr{
+ display:none;
+ }
+ #add_data_div .modal-content{
+ 	width:686px!important
+ }
+ .channegroup{
+ width:500px;
+ }
+ #smsAisleInfoDiv{
+ text-align:left;
+ }
+ .modal-title{
+ 	text-align:left;
+        font-size: 12px;
+    position: relative;
+    top: -7px;
+ }
+ #cz_merge_form .inp-box{
+
+ }
+ #je_data_div .modal-dialog {
+ 	width:300px;
+ }
+#je_data_div .modal-footer{
+	margin-top:20px;
+
+ }
+ .modal-backdrop.in{
+ 	filter: alpha(opacity = 10);
+    opacity: .1;
+ }
+ #cz_merge_form{
+ 	text-align:center;
+ }
+ .modal-backdrop{
+ 	background:#fff;
+ }
+ .awcont{
+ text-align:left;display:inline-block;width:190px;
+ }
+ .modal-footer .f-btn{
+ 	margin:0 10px;
+ }
+ .czmessge{
+ 	margin-top:10px;
+ }
+ .czmessge li{
+ 	line-height:20px;
+ }
+ a.reset_time{
+display:block;text-align:center;width:100%;
+ }
+ .aw-newcontent{
+ 	text-align:center;display:table;min-height:70px;width:100%;
+ }
+ .aw-new{
+ 	display:table-cell;vertical-align: middle;
+ }
+
+ .r-btn{     
+    border-radius: 4px;
+    background: #4284DA;
+    color: #FFFFFF;   
+    text-align: center;
+ 	height: 22px!important;
+    line-height: 20px!important;
+    width: 62px;
+    border: 1px solid #4284DA!important;
+ }
+ .fixed-table-container .bs-checkbox>input,.th-inner>input{
+ 	text-align:center;
+ 	vertical-align:middle!important;
+ }
+ .bs-checkbox {
+ vertical-align:middle!important;
+ }
+ #filterPhoneModal .alwd-filter>li{
+     width: 180px;
+    white-space: nowrap;
+    margin: 0 auto;
+ }
+.loadding-img{
+     text-align: center;
+    height: 100%;
+    margin-top: 22%;
+    margin-left: -190px;
+ }
+ .modal{
+ text-align:center;height:
+ }
+ .modal .modal-dialog{
+     margin-right: 190px!important;   
+    text-align: left;     
+    display: inline-block!important;
+   
+ }
+.modal .awl{
+    width: 300px!important;margin-top: 18%;
+}

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsHomePageDao">
+
+		<!-- 查询的列 -->
+	<sql id="Base_Column_List">
+		id,content,created,updated
+	</sql>
+
+	<select id="queryByCount" resultType="java.lang.Integer">
+		select count(1)
+		from sms_home_page
+	</select>
+	
+	<select id="querySmsHome" resultType="com.dzd.phonebook.entity.SmsHomePage">
+		select
+		id,content,created,updated
+		from sms_home_page
+		order by id desc
+		LIMIT 1
+
+	</select>
+
+
+
+	<insert id="add" parameterType="Object">
+		<selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into sms_home_page (content,created)
+		values(#{content},now())
+	</insert>
+	
+
+	
+	<update id="update" parameterType="com.dzd.phonebook.entity.SmsHomePage">
+		update sms_home_page
+		set content = #{content},
+			updated = now()
+		where id = #{id}
+	</update>
+	
+
+
+</mapper>

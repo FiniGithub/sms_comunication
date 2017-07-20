@@ -1,0 +1,32 @@
+#qminp{
+	top:-2px;
+}
+#input_send_timing{
+	position:relative;top:4px;
+}
+.inp-inp,#start_input,#end_input,select{
+	top:1px;position:relative;
+}
+
+.f-btn{
+	line-height:18px !important
+}
+.xlbox{
+	width:201px;
+}
+.send_time_box {
+	float:left;
+}
+.day-box{
+	
+}
+.model-cont{  
+	text-align:left;
+    display:inline-block;width:580px;
+}
+ .iebr{
+ display:block;
+ }
+ #input_sign{
+ 	position:relative;top:3px;
+ }

@@ -1,0 +1,24 @@
+.fixed-table-pagination .pagination-detail {
+	display: none;
+}
+
+.fixed-table-body thead th .th-inner {
+	display: none;
+}
+
+.table>thead:first-child>tr:first-child>th {
+	border: none;
+}
+
+.table>tbody>tr>td {
+	padding: 0px;
+}
+
+.fixed-table-container {
+	border: none;
+}
+
+.msg_style {
+	border-left: 6px solid #d7d7d7;
+	margin-left: 10px;
+}

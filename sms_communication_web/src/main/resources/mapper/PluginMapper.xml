@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.PluginDao">
+	<!-- Result Map -->
+	<resultMap id="BaseResultMap" type="com.dzd.phonebook.entity.Plugin">
+		<result column="id" property="id" />
+		<result column="path" property="path" />
+		<result column="name" property="name" />
+		<result column="config" property="config" />
+		<result column="intro" property="intro" />
+		<result column="state" property="state" />
+		<result column="deleted" property="deleted" />
+		<result column="createTime" property="createTime" />
+		<result column="updateTime" property="updateTime" />
+		<result column="createBy" property="createBy" />
+		<result column="updateBy" property="updateBy" />
+		<result column="className" property="className" />
+		<result column="aisleName" property="aisleName" />
+	</resultMap>
+	
+		<!-- 查询的列 -->
+	<sql id="Base_Column_List">
+		id,path,name,config,intro,state,deleted,create_time createTime,update_time updateTime,createBy,updateBy,class_name className,aisle_name aisleName
+	</sql>
+	
+	<select id="queryPluginlistPage" parameterType="com.dzd.phonebook.util.DzdPageParam"  resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List"/>
+		from sms_plugin
+		where 1=1
+		
+		<if test="condition != null and condition.startInput != null">
+				and	date_format(ssk.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]> date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+				and date_format(ssk.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]> date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+		</if>
+		<if test="condition != null and condition.pname != null">
+			and name = #{pname}
+		</if>	
+		
+		<if test="condition != null and condition.sortVal != null">
+			${condition.sortVal}
+		</if>
+	</select>
+	
+	
+	
+	<insert id="savePlugin" parameterType="com.dzd.phonebook.entity.Plugin">
+		<selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into sms_plugin (id,path,name,config,intro,create_time,createBy,class_name,aisle_name,jar)
+		values(#{id},#{path},#{name},#{config},#{intro},now(),#{createBy},#{className},#{aisleName},#{jar})
+	</insert>
+	
+	<select id="queryPluginId" parameterType="java.lang.String" resultType="java.lang.Integer">
+		select id from sms_plugin  where path = #{path}
+	</select>
+	
+	<update id="updatePlugin" parameterType="com.dzd.phonebook.entity.Plugin">
+		update sms_plugin set 
+			name = #{name},
+			config = #{config},
+			intro = #{intro},
+			update_time = now(),
+			updateBy =  #{createBy},
+			class_name = #{className},
+			aisle_name = #{aisleName},
+			jar = #{jar}
+		where 
+			path = #{path}
+	</update>
+	
+	<delete id="deletePlugin" parameterType="java.lang.Integer">
+		delete from sms_plugin  where id=#{pid}
+	</delete>
+	
+	<select id="querySmsAislePid" parameterType="java.lang.Integer" resultType="java.lang.Integer" >
+		select count(1) from sms_aisle sa,sms_plugin sp where sp.id = #{pid}
+		and sa.class_name = sp.class_name
+	</select>
+	
+</mapper>

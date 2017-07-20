@@ -1,0 +1,122 @@
+.elastic-box {
+    width: 540px;
+    height: 380px;
+    background-color: white;
+    margin: 100px auto;
+    position: relative;
+    text-align: center;
+}
+
+.elastic-box-top {
+    width: 100%;
+    height: 40px;
+    background-color: #eeedec;
+}
+
+.elastic-box-top img {
+    float: right;
+    margin-top: 6px;
+    margin-right: 7px;
+}
+.elastic-box-content {
+    display: inline-block;
+}
+
+.elastic-box-bottom {
+    width: 100%;
+    height: 54px;
+    background-color: #eeedec;
+    position: absolute;
+    bottom: 0;
+}
+.elastic-box button {
+    width: 70px;
+    height: 30px;
+    background-color: #36c7ef;
+    border: 0;
+    color: white;
+    font-size: 12px;
+    margin-top: 12px;
+}
+.elastic-box-text {
+    font-size: 14px;
+    font-weight: bold;
+    color: #666666!important;
+}
+
+.elastic-box-remark {
+    font-size: 10px;
+    color: #b0b0b0;
+}
+.elastic-box-left{
+    text-align: left;
+}
+ .elastic-box {
+            height: 575px;
+        }
+
+        .elastic-box-content {
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+
+        .elastic-box-text {
+            font-size: 14px;
+            color: #A9A9A9;
+        }
+
+        
+        .elastic-box-num {
+            border-bottom: 1px solid #eaeaea;
+            margin-top: 40px;
+            font-size: 18px;
+            color: #333;
+            padding-bottom: 8px;
+        }
+
+        .elastic-box-smallTexr {
+            font-size: 10px;
+            color: #A9A9A9;
+            font-weight: normal;
+        }
+
+        .color333 {
+            color: #333;
+        }
+
+        .fromLeft {
+            margin-left: 26px;
+        }
+
+        .flex-c.fromTop {
+            display: inline-block;
+            margin: 0 auto;
+            margin-top: 30px;
+        }
+
+        .elastic-box-b {
+            width: 308px;
+            margin: 0 auto;
+        }
+
+        .elastic-box-b > p:nth-child(2) {
+            margin-top: 40px;
+        }
+
+        .elastic-box-b > p > span {
+            color: #f7b53a;
+            font-size: 18px;
+        }
+
+        .elastic-box-b > p:nth-child(3) {
+            text-align: center;
+        }
+
+        .elastic-box-b > p:nth-child(4) {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .elastic-box-left > p:nth-child(2) {
+            margin-top: 8px;
+        }

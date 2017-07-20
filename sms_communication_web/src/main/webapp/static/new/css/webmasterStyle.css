@@ -1,0 +1,469 @@
+.m-logo{
+
+
+
+	height: 60px;line-height: 60px;margin-left: 20px;
+
+
+
+}
+
+
+
+.index-btn{
+
+
+
+	width: 190px;height: 64px;border: 1px solid #dddddd;border-radius: 4px;margin: 30px auto;line-height: 64px;padding: 14px;
+
+
+
+}
+
+
+
+.index-btn-box{
+
+
+
+	width: 100%;flex-wrap: wrap;margin: auto;
+
+
+
+}
+
+
+
+.aw-content-wrap-top{
+
+
+
+	overflow: hidden;
+
+
+
+}
+
+
+
+.aw-content-wrap-table-box{
+
+
+
+	min-width: 835px;
+
+
+
+}
+
+
+
+.aw-content-wrap-title-box{
+
+
+
+	overflow: hidden;height: 36px;line-height: 36px;background: #EEEEEE;
+
+
+
+}
+
+
+
+.aw-content-wrap-com-table{
+
+
+
+	width: 100%;
+
+
+
+}
+
+
+
+.aw-content-wrap-title{
+
+
+
+	padding-left: 20px;color: #666666;font-size: 16px;
+
+
+
+}
+
+
+
+.aw-content-wrap-title-link{
+
+
+
+	padding-right: 10px;
+
+
+
+}
+
+
+
+.aw-content-wrap-title-link a{
+
+
+
+	color: #666666;font-size: 16px;padding: 10px;
+
+
+
+}
+
+
+
+.aw-content-wrap-com-table{
+
+
+
+	text-align: center;margin-top: 60px;font-size: 14px;
+
+
+
+}
+
+
+
+.aw-content-wrap-com-th{
+
+
+
+	height: 25px!important;
+
+
+
+}
+
+
+
+.aw-content-wrap-com-table tr th{
+
+
+
+	text-align: center;background: #f4f4f4;border: 1px solid #ebebeb;
+
+
+
+}
+
+
+
+.aw-content-wrap-com-table tr{
+
+
+
+	height: 40px;
+
+
+
+}
+
+
+
+.aw-content-wrap-com-table tr td{
+
+
+
+	border: 1px solid #ebebeb;
+
+
+
+}
+
+
+
+.index-btn-ifo{
+
+
+
+	margin-left: 18px;
+
+
+
+	flex-direction: column;
+
+
+
+}
+
+
+
+.index-btn-ifo p{
+
+	max-width: 96px;
+
+	overflow: hidden;
+
+	line-height: normal;
+
+	white-space:nowrap;
+
+text-overflow:ellipsis;
+
+}
+
+
+
+.index-btn-ifo p span{
+
+
+
+	font-size: 16px;
+
+
+
+}
+
+
+
+.brline li{
+
+
+
+	border: 2px solid #AAAAAA;width: 30px;height: 1px;line-height: normal;font-size: 1px;margin-top: 4px;
+
+
+
+}
+
+
+
+.table-striped{
+
+
+
+	width:100%!important;
+
+
+
+}
+
+/*5.2*/
+
+.aw-side .mod-message a{
+
+	width: auto!important;padding-left:25px!important;text-align: left;
+
+}
+
+
+
+.hbtn{
+
+	padding: 4px;position: relative;letter-spacing: 6px;
+
+}
+
+.aw-side .active{
+
+  border-color:#353535!important;background: none!important;
+
+}
+
+.collapse .active{
+
+	background: #3695D5!important;
+
+}
+.collapse{
+	height: auto!important;
+}
+.table-striped> tbody> tr:nth-child(odd)> td, .table-striped> tbody> tr:nth-child(odd)> th{
+
+	border-bottom: 1px solid #dddddd;
+
+}
+
+
+
+.inp-box{
+
+
+
+	display:flex;
+
+	-webkit-align-content: center;
+
+	-moz-align-content: center;
+
+	-ms-align-content: center;
+
+	-webkit-justify-content:flex-start; 
+
+	-moz-justify-content:flex-start; 
+
+	-ms-justify-content:flex-start; 	
+
+	-webkit-align-items:center;
+
+	-moz-align-items:center;
+
+	-ms-align-items:center;
+
+	align-content: center;
+
+	justify-content:flex-start; 
+
+	align-items:center;
+
+	padding:10px;
+
+}
+.inp-box>span{
+	white-space:nowrap;
+}
+.inp-box>input{
+
+	width:130px;
+
+	margin-left:1px;	
+
+}
+
+.inp-title{
+
+	display: inline-block;width: 74px;white-space:nowrap;
+
+}
+
+
+
+
+
+.com-menu{
+
+	display:flex;
+
+	-webkit-align-content: center;
+
+	-moz-align-content: center;
+
+	-ms-align-content: center;
+
+	-webkit-justify-content:flex-start; 
+
+	-moz-justify-content:flex-start; 
+
+	-ms-justify-content:flex-start; 	
+
+	-webkit-align-items:center;
+
+	-moz-align-items:center;
+
+	-ms-align-items:center;
+
+	align-content: center;
+
+	justify-content:flex-start; 
+
+	align-items:center;
+
+	flex-wrap:wrap;
+
+}
+
+.inpt-box-btn{
+
+	flex-wrap:wrap;
+
+
+
+}
+
+.inpt-box-btn>input{
+
+	width: 150px;
+
+}
+
+.inpt-box-btn:after{
+
+
+
+	content: "";
+
+	clear: both;
+
+}
+
+.inp-box>button{
+
+	margin:4px;
+
+}
+
+.inp-menu{
+
+	padding-bottom: 20px;
+
+}
+.message>a{
+overflow: hidden;
+	position: relative;
+	display: block;
+	padding-left: 25px;
+	height: 40px;
+	outline: none;
+	
+	color: #999;
+	font-size: 14px;
+	line-height: 34px;
+	
+}
+.aw-side .mod-message{
+
+}
+.aw-side{
+	padding-top: 60px!important;z-index: 100;
+}
+.dropdown-menu{
+	min-width: auto;
+}
+.aw-side{
+	z-index: 100!important;
+}
+.hostbtn-box>a:hover{
+	background: #3695D5!important;
+}
+@media screen and (max-width: 1024px){
+	.aw-side .mod-message a{
+		padding-left: 0!important;
+	}
+	.footbox{
+		display: none!important;
+	}
+}
+
+@media screen and (max-width: 768px){
+
+	.inp-box{
+
+		width: 100%
+
+	}
+
+	.inp-box input{
+
+		width: 90%
+
+	}
+
+	.inp-box>button{
+
+	width: 100%;
+
+}
+
+	.dataline{
+
+		display: inline-block;width: text-align:right;width: 20%;
+
+	}
+
+}

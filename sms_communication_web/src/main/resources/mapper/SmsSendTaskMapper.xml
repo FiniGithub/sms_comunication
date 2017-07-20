@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dzd.phonebook.dao.SmsSendTaskDao">
+	<resultMap id="SmsSendMapper" type="com.dzd.phonebook.entity.SmsSendTask">
+		<result column="id" property="id"/>
+		<result column="send_time" property="sendTime"/>
+		<result column="content" property="content"/>
+		<result column="sms_user_id" property="smsUserId"/>
+		<result column="state" property="state"/>
+		<result column="create_time" property="createTime"/>
+		<result column="update_time" property="updateTime"/>
+		<result column="timing_time" property="timingTime"/>
+		<result column="send_num" property="sendNum"/>
+		<result column="billing_num" property="billingNum"/>
+		<result column="error_phone_num" property="errorPhoneNum"/>
+		<result column="blacklist_phone_num" property="blacklistPhoneNum"/>
+		<result column="send_type" property="sendType"/>
+		<result column="sms_aisle_group_id" property="smsAisleGroupId"/>
+		<result column="audit_state" property="auditState"/>
+		<result column="audit_time" property="auditTime"/>
+		<result column="audit_id" property="auditId"/>
+		<result column="return_state" property="returnState"/>
+		<result column="callback_url" property="callbackUrl"/>
+		<result column="actual_num" property="actualNum"/>
+	</resultMap>
+	
+	
+	
+	<!-- 查询今日消费数量 -->
+	<select id="queryTodaySendCount" resultType="com.dzd.phonebook.util.SmsUserMoneyRunning">
+		SELECT SUM(operate_num) AS consumeNumber
+		FROM sms_user_money_running
+		WHERE sms_user_id = #{userId}  
+		AND type = 1
+		AND DATE_FORMAT(create_time,'%Y%m%d') = DATE_FORMAT(now(),'%Y%m%d');
+	</select>
+
+	<!-- 查询用户是否有消费记录 -->
+	<select id="queryTaskByUid" resultType="com.dzd.phonebook.entity.SmsSendTask" >
+		SELECT *
+		FROM sms_send_task
+		WHERE sms_user_id = #{userId}
+	</select>
+
+
+	<!-- 统计消费 -->
+	<select id="queryTaskStatistical"  parameterType="com.dzd.phonebook.util.DzdPageParam" resultMap="SmsSendMapper"  >
+		select 
+			SUM(ssk.send_num) as send_num ,
+			SUM(ssk.billing_num) as billing_num,
+			SUM(ssk.actual_num) as actual_num 
+		from sms_send_task  ssk
+		LEFT JOIN sms_user su on su.id = ssk.sms_user_id
+		LEFT JOIN sms_aisle_group sag on sag.id=ssk.sms_aisle_group_id
+		where 1=1
+		<if test="condition!=null and condition.superAdmin!=null and condition.superAdmin!=1">
+			<if test="condition != null and condition.sysUserId != null">
+				and su.sys_user_id = #{condition.sysUserId}
+			</if>
+			<if test="condition != null and condition.smsBid != null">
+				OR su.bid = #{condition.smsBid}
+			</if>
+		</if>
+
+		<if test="condition != null and condition.startInput != null">
+				and	date_format(ssk.create_time, '%Y-%m-%d %H:%i') <![CDATA[ >= ]]> date_format(#{condition.startInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+				and date_format(ssk.create_time, '%Y-%m-%d %H:%i') <![CDATA[ <= ]]> date_format(#{condition.endInput,jdbcType=VARCHAR}, '%Y-%m-%d %H:%i')
+		</if>
+		<if test="condition != null and condition.ids != null">
+			and ssk.id = #{condition.ids}
+		</if>
+		<if test="condition != null and condition.auditState != null">
+			and ssk.audit_state = #{condition.auditState}
+		</if>
+		<if test="condition != null and condition.state != null">
+			and ssk.state = #{condition.state}
+		</if>
+		<if test="condition != null and condition.content != null">
+			and ssk.content like '%${condition.content}%'
+		</if>
+		<if test="condition != null and condition.smsUserEmail != null">
+			and su.email = #{condition.smsUserEmail}
+		</if>
+
+
+		order by ssk.id desc
+	</select>
+	
+	<insert id="addTaskStat" parameterType="com.dzd.phonebook.entity.SmsSendTask">
+		insert into sms_send_task(content,sms_user_id,state,create_time,send_num,billing_num,error_phone_num,blacklist_phone_num,send_type,audit_state)
+		values(#{content},#{smsUserId},${state},now(),#{sendNum},#{billingNum},#{errorPhoneNum},#{blacklistPhoneNum},#{sendType},#{auditState})
+	</insert>
+
+ 
+</mapper>

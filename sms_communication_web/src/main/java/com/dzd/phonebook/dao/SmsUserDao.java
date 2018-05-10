@@ -4,9 +4,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ibatis.annotations.Param;
-import org.junit.runners.Parameterized.Parameter;
-
 import com.dzd.base.dao.BaseDao;
 import com.dzd.phonebook.entity.SmsUserMessage;
 import com.dzd.phonebook.util.DzdPageParam;
